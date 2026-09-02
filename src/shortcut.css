@@ -1,0 +1,36 @@
+.search-upload-shortcut {
+  position: fixed;
+  z-index: 6;
+  top: 88px;
+  right: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border-radius: 8px;
+  background: #176846;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 12px #172b2326;
+}
+
+.search-upload-shortcut:hover,
+.search-upload-shortcut:focus-visible {
+  background: #10563a;
+  outline: 3px solid #96cbb4;
+  outline-offset: 2px;
+}
+
+.search-upload-shortcut svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 600px) {
+  .search-upload-shortcut {
+    top: auto;
+    right: 16px;
+    bottom: 82px;
+  }
+}

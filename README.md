@@ -74,4 +74,3 @@ See [REQUIREMENTS.md](REQUIREMENTS.md) for the supported product scope.
 ## License
 
 Proprietary. See [LICENSE](LICENSE).
-
