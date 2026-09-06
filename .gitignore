@@ -1,6 +1,7 @@
 node_modules/
 node_modules-broken-*/
 .pnpm-store/
+.npm-cache/
 .git-sites/
 dist/
 .next/
@@ -28,3 +29,4 @@ temp/
 ocr-pages/
 ocr-output/
 JANASOOCHI-VSCode.zip
+
