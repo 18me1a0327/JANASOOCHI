@@ -1,6 +1,8 @@
+'use client'
+
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CheckCircle2, ChevronLeft, ChevronRight, ExternalLink, RefreshCw, X } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { invalidateDataCache } from './data'
 import { supabase } from './lib'
 import { classifyReviewError, reviewErrorContext, reviewPageOffset } from './review'
@@ -22,7 +24,7 @@ const categories: { value: ReviewCategory; label: string }[] = [
 ]
 
 export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
-  const nav = useNavigate()
+  const router = useRouter()
   const [rows, setRows] = useState<ReviewPageRow[]>([])
   const [total, setTotal] = useState(0)
   const [category, setCategory] = useState<ReviewCategory>('all')
@@ -40,8 +42,8 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
     sessionStorage.setItem('pv-auth-message', 'Your session has expired. Please sign in again.')
     sessionStorage.setItem('pv-return-to', '/review')
     await supabase.auth.signOut({ scope: 'local' })
-    nav('/login', { replace: true })
-  }, [nav])
+    router.replace('/login')
+  }, [router])
 
   const load = useCallback(async () => {
     setBusy(true)
@@ -112,7 +114,7 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
 
   function source(row: ReviewPageRow) {
     const physicalPage = row.voter_pdf_page_number ?? row.page_pdf_page_number ?? 1
-    nav(`/source/${row.pdf_id}?page=${physicalPage}${row.voter_id ? `&voter=${row.voter_id}` : ''}`)
+    router.push(`/source/${row.pdf_id}?page=${physicalPage}${row.voter_id ? `&voter=${row.voter_id}` : ''}`)
   }
   const pageOptions = useMemo(() => Array.from({ length: pageCount }, (_, index) => index + 1), [pageCount])
 

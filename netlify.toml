@@ -1,12 +1,19 @@
 [build]
   command = "pnpm build"
-  publish = "dist"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
   PNPM_VERSION = "9"
+
+[dev]
+  command = "pnpm dev"
+  targetPort = 3000
+  framework = "#auto"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"

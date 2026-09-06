@@ -13,6 +13,8 @@ type RequestBody = {
   email?: string
   password?: string
   role?: UserRole
+  page?: number
+  perPage?: number
 }
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
@@ -46,7 +48,9 @@ Deno.serve(async (request: Request) => {
 
     const body = await request.json() as RequestBody
     if (body.action === 'list') {
-      const { data, error } = await service.auth.admin.listUsers({ page: 1, perPage: 1000 })
+      const page = Math.max(1, Math.trunc(Number(body.page) || 1))
+      const perPage = Math.min(100, Math.max(1, Math.trunc(Number(body.perPage) || 50)))
+      const { data, error } = await service.auth.admin.listUsers({ page, perPage })
       if (error) throw error
       const ids = data.users.map((user) => user.id)
       const { data: profiles, error: profilesError } = ids.length
@@ -54,7 +58,7 @@ Deno.serve(async (request: Request) => {
         : { data: [], error: null }
       if (profilesError) throw profilesError
       const roles = new Map((profiles || []).map((profile) => [profile.id, profile.role as UserRole]))
-      return json({ users: data.users.map((user) => ({ id: user.id, email: user.email ?? null, role: roles.get(user.id) ?? 'viewer', created_at: user.created_at, last_sign_in_at: user.last_sign_in_at ?? null, is_current: user.id === caller.id })) })
+      return json({ page, perPage, total: data.total, users: data.users.map((user) => ({ id: user.id, email: user.email ?? null, role: roles.get(user.id) ?? 'viewer', created_at: user.created_at, last_sign_in_at: user.last_sign_in_at ?? null, is_current: user.id === caller.id })) })
     }
 
     if (body.action === 'create') {

@@ -4,6 +4,7 @@ node_modules-broken-*/
 .git-sites/
 dist/
 .next/
+.netlify/
 out/
 coverage/
 .env
@@ -26,3 +27,4 @@ temp/
 *.pdf
 ocr-pages/
 ocr-output/
+JANASOOCHI-VSCode.zip

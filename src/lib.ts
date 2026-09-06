@@ -1,15 +1,20 @@
-import { createClient } from '@supabase/supabase-js'
+'use client'
+
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import * as pdfjs from 'pdfjs-dist'
 import { createWorker, PSM } from 'tesseract.js'
+import { createClient, isSupabaseConfigured } from '../lib/supabase/client'
 import { analyzeOcrLayout, columnizeOcrWords, countRecordLabels, detectLanguage, detectPart, extractGridCodes, gridCardizeOcrWords, languageFromFilename, OCR_REVIEW_THRESHOLD, ocrLanguages, parseRecords, pdfPayloadProblem, UNSUPPORTED } from './core'
 import type { BoundingBox, FieldConfidence, RecordLanguage, Voter } from './types'
 import type { Database } from './database.types'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined
-export const configured = Boolean(url && key)
-export const supabase = createClient<Database>(url || 'https://invalid.local', key || 'invalid', { auth: { persistSession: true } })
+export const configured = isSupabaseConfigured()
+export const supabase = configured
+  ? createClient()
+  : createSupabaseClient<Database>('https://invalid.local', 'invalid', {
+      auth: { persistSession: false },
+    })
 
 export type PageType = 'cover' | 'summary' | 'map' | 'voter' | 'unknown'
 export type PageProcessState = {
