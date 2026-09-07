@@ -2,62 +2,74 @@
 
 ## Current Phase
 
-Phase 2C — Field-Region Extraction / Card Parsing Foundation
+Phase 2D — English + Telugu OCR
 
 ## Completed
 
-- Added typed `FieldType`, normalized `RelativeBoundingBox`, `FieldRegion`,
-  `CardFieldRegions`, per-card failure, and page result contracts.
-- Added all eight required target regions: serial number, EPIC, voter name,
-  relation name, relation type, house number, age, and gender.
-- Added explicit, versioned English and Telugu fixed-card templates using
-  normalized card coordinates. Urdu intentionally has no Phase 2C template.
-- Converted normalized card coordinates to deterministic rendered-page integer
-  `x1, y1, x2, y2` bounding boxes while keeping every box inside its parent
-  card.
-- Added lossless in-memory PNG cropping from the original rendered page without
-  altering the source image or writing sensitive crops to disk.
-- Added page-level extraction that isolates an invalid card and continues all
-  remaining valid cards.
-- Added safe typed failures for unsupported templates, invalid field geometry,
-  field extraction, and rendered-page/segmentation contract mismatch.
-- Added an in-memory development overlay for parent-card and field boxes. It is
-  not persisted and no public API endpoint was added.
-- Advanced the service/pipeline/preprocessing versions and advertised only the
-  implemented EN/TE field-region capability through `/health`.
-- No OCR, confidence values, voter values, parsing inference, database change,
-  web UI change, or production deployment change was introduced.
+- Added typed OCR engine, field-result, field-failure, card-result, benchmark
+  case, and benchmark-summary contracts.
+- Added an actual Tesseract subprocess adapter that accepts Phase 2C crops in
+  memory through standard input and does not create temporary voter-card files.
+- Added deterministic field profiles: numeric recognition for serial/age,
+  restricted uppercase alphanumeric recognition for EPIC, English recognition
+  for English names, Telugu recognition for Telugu names, and mixed
+  Telugu/English recognition for Telugu house-number fields.
+- Added a lazy PaddleOCR v3 recognition adapter for the English and Telugu
+  mobile recognition models. The optional Paddle runtime is isolated in
+  `requirements-paddle.txt` and is not installed or downloaded by the default
+  service image.
+- Preserved every engine's raw output separately from normalized search values.
+  Confidence remains null unless the selected engine returns a real score.
+- Added per-field OCR failure isolation so one failed field does not terminate
+  the remaining fields on the card.
+- Added a small exact-normalized benchmark harness whose denominators come only
+  from explicitly supplied expected values; it does not manufacture a
+  production accuracy percentage.
+- Added narrowly scoped OCR errors for unavailable engines, execution failures,
+  malformed output, and unsupported OCR languages.
+- Added English and Telugu Tesseract language packs to the Docker runtime and
+  verified their presence during image construction.
+- Updated the processing versions and health capabilities for the implemented
+  Phase 2D behavior.
+- Kept Urdu OCR blocked and made no full-roll, database, Supabase, RLS, web UI,
+  or production deployment changes.
 
 ## Tests
 
-- Focused Phase 2C field-region tests: PASS — 12/12.
-- Complete extraction-service regression: PASS — 40/40, including all 28
-  pre-existing Phase 2A/2B tests.
+- Focused local OCR suite: PASS — 12 passed, 2 skipped. The two runtime tests
+  were skipped because Tesseract is not installed on the Windows host.
+- Complete local extraction-service regression: PASS — 52 passed, 2 skipped
+  (54 collected).
 - Python compile check for `app` and `tests`: PASS.
-- Covered normal EN geometry, explicit TE geometry, normalized scaling, actual
-  PNG crop dimensions, card containment, invalid geometry, unsupported Urdu
-  template, deterministic repeatability, per-card failure isolation, page
-  contract mismatch, non-voter pages, source immutability, and debug overlay.
-- Initial scaling assertion was reproduced and traced to expected one-pixel
-  floor/ceil quantization at different resolutions. The assertion was corrected
-  to a one-pixel tolerance and the focused and full suites were rerun to PASS.
+- Docker GitHub Actions regression: PASS — 54/54 tests, including real
+  Tesseract English/Telugu runtime checks.
+- Docker production runtime image build: PASS.
+- Docker runtime `/api/v1/health` check: PASS.
+- CI evidence:
+  https://github.com/18me1a0327/JANASOOCHI/actions/runs/34163754952
+- Reproduced an invalid Paddle confidence failure and traced it to validation
+  occurring only inside the installed backend. Added validation at the adapter
+  boundary, then reran the focused suite to PASS.
+- Reproduced a stale health-test failure that prohibited every OCR capability.
+  Removed only that obsolete Phase 2A assertion, then reran the full regression
+  suite to PASS.
 - Web tests/build were not rerun because no web, Supabase, RLS, or UI file was
   changed.
 
-## Field-Region Contract
+## OCR Behavior
 
-- Template representation: normalized zero-to-one coordinates relative to the
-  validated parent card.
-- Output representation: both normalized coordinates and integer rendered-page
-  pixel `x1, y1, x2, y2` coordinates.
-- Crop behavior: PNG bytes exist only in memory; no filesystem/database storage
-  helper or endpoint was added.
-- Ordering: the eight target fields have a stable typed contract order.
-- Language behavior: EN and TE use separately identified templates. A future
-  template may evolve independently without translating or replacing source
-  content.
-- Failure behavior: invalid cards produce typed failure rows while valid cards
-  from the same page continue.
+- Serial and age: numeric Tesseract whitelist and numeric normalization.
+- EPIC: uppercase alphanumeric Tesseract whitelist and normalization.
+- English names/relations: English OCR profile.
+- Telugu names/relations: Telugu OCR profile.
+- Telugu house numbers: mixed `tel+eng` OCR profile.
+- Raw OCR text: retained exactly as returned by the engine.
+- Normalized text: stored separately for deterministic search/validation use.
+- Confidence: actual engine score only; otherwise null.
+- PaddleOCR: explicit lazy adapter with injectable backend for deterministic
+  tests; no model is silently downloaded by the default service.
+- Failure isolation: a field failure becomes a typed failure entry while other
+  fields on the card continue.
 
 ## Files Changed
 
@@ -65,36 +77,48 @@ Phase 2C — Field-Region Extraction / Card Parsing Foundation
 - `services/extraction-api/app/api/health.py`
 - `services/extraction-api/app/core/config.py`
 - `services/extraction-api/app/core/exceptions.py`
-- `services/extraction-api/app/models/field_regions.py`
-- `services/extraction-api/app/vision/__init__.py`
-- `services/extraction-api/app/vision/field_regions.py`
-- `services/extraction-api/app/vision/debug.py`
-- `services/extraction-api/tests/segmentation_fixtures.py`
-- `services/extraction-api/tests/test_field_regions.py`
+- `services/extraction-api/app/models/ocr.py`
+- `services/extraction-api/app/ocr/__init__.py`
+- `services/extraction-api/app/ocr/base.py`
+- `services/extraction-api/app/ocr/normalization.py`
+- `services/extraction-api/app/ocr/tesseract.py`
+- `services/extraction-api/app/ocr/paddle.py`
+- `services/extraction-api/app/ocr/pipeline.py`
+- `services/extraction-api/app/ocr/benchmark.py`
+- `services/extraction-api/Dockerfile`
+- `services/extraction-api/requirements-paddle.txt`
+- `services/extraction-api/tests/test_ocr.py`
 - `services/extraction-api/tests/test_health.py`
 - `services/extraction-api/README.md`
 - `docs/CODEX_CHECKPOINT.md`
 
 ## Known Limitations
 
-- Field template ratios are verified with synthetic, non-sensitive fixtures.
-  They must be calibrated against a small authorized representative set of real
-  English and Telugu cards kept outside Git before OCR benchmarking.
-- Phase 2C extracts image regions only. It does not recognize text, parse voter
-  fields, infer missing values, or report accuracy/confidence.
-- Strongly rotated/damaged pages and cards without the Phase 2B fixed grid remain
-  outside the deterministic template contract.
-- Urdu field extraction remains blocked until valid `%PDF-` Urdu source files
-  and their card geometry are verified.
-- FastAPI/Starlette emits two upstream test-client deprecation warnings. Pytest
-  also reports its optional local cache directory is not writable; neither
-  affects the 40 passing tests.
+- Production EN/TE accuracy has not been measured against representative,
+  manually verified real voter-card ground truth. A confidence value is not an
+  accuracy result.
+- The optional PaddleOCR runtime/models are not installed in the default Docker
+  image and were not downloaded or benchmarked in this sprint.
+- The Docker suite verifies both installed Tesseract language packs and English
+  runtime recognition; Telugu raw-value preservation and adapter behavior are
+  covered deterministically, while representative Telugu transcription quality
+  remains a later benchmark task.
+- Phase 2C field templates still require calibration against a small authorized
+  representative sample kept outside Git.
+- There is no full-document OCR run, persistence integration, retry policy, or
+  production accuracy claim in Phase 2D.
+- Urdu OCR remains blocked until valid `%PDF-` Urdu source files are supplied
+  and verified.
+- FastAPI/Starlette emits two upstream test-client deprecation warnings. They do
+  not affect the 54 passing Docker tests.
 
 ## Next Exact Task
 
-Phase 2D — English + Telugu OCR
+Phase 2E — Targeted OCR Retry / Recovery
 
-Add field-specific OCR adapter contracts and a small EN/TE benchmark harness for
-the in-memory Phase 2C crops. Preserve raw OCR exactly, report confidence only
-when supplied by the real engine, use synthetic or authorized fixtures outside
-Git, and do not run full-roll OCR, ML, DL, or AI.
+Add bounded field/card-level retry orchestration (maximum two retries) using
+explicit preprocessing variants and retryability rules. Preserve every attempt,
+engine result, and error; never retry an entire document for one failed field;
+keep page/job processing resumable; and do not begin full-roll OCR or accuracy
+benchmarking.
+
