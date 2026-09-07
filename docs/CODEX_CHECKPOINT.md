@@ -2,57 +2,62 @@
 
 ## Current Phase
 
-Phase 2B — Deterministic Card Segmentation
+Phase 2C — Field-Region Extraction / Card Parsing Foundation
 
 ## Completed
 
-- Added typed rendered-pixel `BoundingBox`, `CardRegion`,
-  `PageSegmentationResult`, and page-isolated batch result contracts.
-- Added deterministic three-column by up-to-ten-row grid segmentation.
-- Detects voter content below page headers and above footers from visible grid
-  boundaries rather than splitting the full physical page blindly.
-- Validates exactly three columns, one to ten consistent rows, positive and
-  in-page geometry, consistent dimensions, ordered boundaries, and row-major
-  output.
-- Removes empty candidate cells using deterministic inner-region ink checks;
-  pages may produce zero through thirty validated cards.
-- Added typed invalid-geometry and unsupported-page-layout failures using the
-  existing Phase 2A exception hierarchy.
-- Added batch segmentation that records an expected failure for one physical
-  page and continues with all other pages.
-- Added an internal, in-memory debug PNG overlay with card boxes and positional
-  labels. No debug endpoint or persisted image was added.
-- Advertised only the implemented deterministic segmentation capability through
-  the health contract and advanced the pipeline/preprocessing versions.
-- No OCR, voter fields, database migration, production UI, or source data was
-  added or changed.
+- Added typed `FieldType`, normalized `RelativeBoundingBox`, `FieldRegion`,
+  `CardFieldRegions`, per-card failure, and page result contracts.
+- Added all eight required target regions: serial number, EPIC, voter name,
+  relation name, relation type, house number, age, and gender.
+- Added explicit, versioned English and Telugu fixed-card templates using
+  normalized card coordinates. Urdu intentionally has no Phase 2C template.
+- Converted normalized card coordinates to deterministic rendered-page integer
+  `x1, y1, x2, y2` bounding boxes while keeping every box inside its parent
+  card.
+- Added lossless in-memory PNG cropping from the original rendered page without
+  altering the source image or writing sensitive crops to disk.
+- Added page-level extraction that isolates an invalid card and continues all
+  remaining valid cards.
+- Added safe typed failures for unsupported templates, invalid field geometry,
+  field extraction, and rendered-page/segmentation contract mismatch.
+- Added an in-memory development overlay for parent-card and field boxes. It is
+  not persisted and no public API endpoint was added.
+- Advanced the service/pipeline/preprocessing versions and advertised only the
+  implemented EN/TE field-region capability through `/health`.
+- No OCR, confidence values, voter values, parsing inference, database change,
+  web UI change, or production deployment change was introduced.
 
 ## Tests
 
-- Focused Phase 2B segmentation tests: PASS — 11/11.
-- Complete extraction-service regression: PASS — 28/28, including all 17
-  pre-existing Phase 2A tests.
+- Focused Phase 2C field-region tests: PASS — 12/12.
+- Complete extraction-service regression: PASS — 40/40, including all 28
+  pre-existing Phase 2A/2B tests.
 - Python compile check for `app` and `tests`: PASS.
-- Covered full 3x10 layout, row-major ordering, bbox validity, partial final
-  row, shorter pages, empty/non-voter page, malformed geometry, unsupported
-  layout, deterministic repeatability, page-failure isolation, and debug PNG.
-- Web application tests/build were not rerun because this sprint changed no web,
-  Supabase, RLS, or production UI files.
+- Covered normal EN geometry, explicit TE geometry, normalized scaling, actual
+  PNG crop dimensions, card containment, invalid geometry, unsupported Urdu
+  template, deterministic repeatability, per-card failure isolation, page
+  contract mismatch, non-voter pages, source immutability, and debug overlay.
+- Initial scaling assertion was reproduced and traced to expected one-pixel
+  floor/ceil quantization at different resolutions. The assertion was corrected
+  to a one-pixel tolerance and the focused and full suites were rerun to PASS.
+- Web tests/build were not rerun because no web, Supabase, RLS, or UI file was
+  changed.
 
-## Segmentation
+## Field-Region Contract
 
-- Algorithm: grayscale copy, dark-line projections, regularly spaced horizontal
-  boundary selection, four-boundary/three-column geometry selection, then
-  deterministic per-cell inner-content validation.
-- Bounding boxes: integer `x1, y1, x2, y2` values in the existing rendered PNG
-  pixel coordinate system.
-- Full-page behavior: a validated ten-row, three-column grid with content in all
-  cells returns 30 row-major card regions.
-- Partial-page behavior: shorter grids and empty final cells return only regions
-  with plausible content; candidates are never promoted merely to meet an
-  expected Part total.
-- `card_index` is a one-based page-position index only and never an authoritative
-  voter serial number.
+- Template representation: normalized zero-to-one coordinates relative to the
+  validated parent card.
+- Output representation: both normalized coordinates and integer rendered-page
+  pixel `x1, y1, x2, y2` coordinates.
+- Crop behavior: PNG bytes exist only in memory; no filesystem/database storage
+  helper or endpoint was added.
+- Ordering: the eight target fields have a stable typed contract order.
+- Language behavior: EN and TE use separately identified templates. A future
+  template may evolve independently without translating or replacing source
+  content.
+- Failure behavior: invalid cards produce typed failure rows while valid cards
+  from the same page continue.
 
 ## Files Changed
 
@@ -60,36 +65,36 @@ Phase 2B — Deterministic Card Segmentation
 - `services/extraction-api/app/api/health.py`
 - `services/extraction-api/app/core/config.py`
 - `services/extraction-api/app/core/exceptions.py`
-- `services/extraction-api/app/models/segmentation.py`
+- `services/extraction-api/app/models/field_regions.py`
 - `services/extraction-api/app/vision/__init__.py`
-- `services/extraction-api/app/vision/segmentation.py`
+- `services/extraction-api/app/vision/field_regions.py`
 - `services/extraction-api/app/vision/debug.py`
 - `services/extraction-api/tests/segmentation_fixtures.py`
-- `services/extraction-api/tests/test_segmentation.py`
+- `services/extraction-api/tests/test_field_regions.py`
 - `services/extraction-api/tests/test_health.py`
 - `services/extraction-api/README.md`
 - `docs/CODEX_CHECKPOINT.md`
 
 ## Known Limitations
 
-- Tests use synthetic, non-sensitive layouts. The boundary thresholds still need
-  validation against a small authorized EN/TE representative-page benchmark
-  kept outside Git before full-roll processing.
-- Phase 2B intentionally handles fixed, visible three-column voter grids. It does
-  not yet deskew strongly rotated pages or infer layouts with missing structural
-  lines.
-- Content validation establishes that a region is non-empty; OCR and semantic
-  voter-card validation are intentionally deferred.
-- Urdu remains only a validated language contract. Real Urdu processing remains
-  blocked until valid `%PDF-` source files are supplied.
+- Field template ratios are verified with synthetic, non-sensitive fixtures.
+  They must be calibrated against a small authorized representative set of real
+  English and Telugu cards kept outside Git before OCR benchmarking.
+- Phase 2C extracts image regions only. It does not recognize text, parse voter
+  fields, infer missing values, or report accuracy/confidence.
+- Strongly rotated/damaged pages and cards without the Phase 2B fixed grid remain
+  outside the deterministic template contract.
+- Urdu field extraction remains blocked until valid `%PDF-` Urdu source files
+  and their card geometry are verified.
 - FastAPI/Starlette emits two upstream test-client deprecation warnings. Pytest
-  also warns that its optional local cache directory is not writable; neither
-  warning affects the 28 passing tests.
+  also reports its optional local cache directory is not writable; neither
+  affects the 40 passing tests.
 
 ## Next Exact Task
 
-Phase 2C — Field-Region Extraction / Card Parsing Foundation
+Phase 2D — English + Telugu OCR
 
-Define deterministic field-region crops inside validated card boxes, preserve
-page-relative coordinates, add typed raw field-region contracts and synthetic
-tests, and do not add OCR, ML, DL, AI, or full-roll processing.
+Add field-specific OCR adapter contracts and a small EN/TE benchmark harness for
+the in-memory Phase 2C crops. Preserve raw OCR exactly, report confidence only
+when supplied by the real engine, use synthetic or authorized fixtures outside
+Git, and do not run full-roll OCR, ML, DL, or AI.

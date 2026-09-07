@@ -3,8 +3,9 @@
 Phase 2 foundation for reliable server-side electoral-roll extraction. This
 service validates and fingerprints PDFs, renders one physical page at a time,
 exposes typed processing-job contracts, and deterministically segments visible
-three-column voter grids into up to 30 ordered card regions. It does not yet
-perform OCR, field parsing, or full-roll processing.
+three-column voter grids into up to 30 ordered card regions. Validated English
+and Telugu cards can be split into typed field crops for the eight required
+voter fields. It does not yet perform OCR or full-roll processing.
 
 ## Safety boundary
 
@@ -31,6 +32,17 @@ Non-voter pages return zero cards, while malformed and unsupported layouts use
 typed extraction errors. `segment_pages` isolates an expected failure to its
 physical page. `app.vision.debug.render_segmentation_overlay` creates an
 in-memory development PNG with boxes and indices; it is not exposed by an API.
+
+## Field-region extraction
+
+`app.vision.extract_card_field_regions` applies an explicit EN or TE fixed-card
+template using normalized card coordinates. It returns serial number, EPIC,
+voter name, relation name/type, house number, age, and gender crops with both
+card-relative and rendered-page pixel bounding boxes. Crops and development
+overlays exist only in memory and are not persisted or publicly exposed.
+`extract_page_field_regions` isolates an invalid card and continues the page.
+Urdu has no Phase 2C template and is rejected until valid source files and a
+verified layout are available.
 
 ## Local development
 

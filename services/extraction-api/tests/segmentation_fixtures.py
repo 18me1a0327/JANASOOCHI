@@ -19,19 +19,30 @@ def synthetic_voter_page(
     rows: int = 10,
     columns: int = 3,
     populated_cards: int = 30,
+    scale: int = 1,
 ) -> RenderedPage:
     document = pymupdf.open()
-    page = document.new_page(width=PAGE_WIDTH, height=PAGE_HEIGHT)
-    page.insert_text((60, 70), "Synthetic electoral layout fixture", fontsize=16)
+    page = document.new_page(width=PAGE_WIDTH * scale, height=PAGE_HEIGHT * scale)
+    page.insert_text(
+        (60 * scale, 70 * scale),
+        "Synthetic electoral layout fixture",
+        fontsize=16 * scale,
+    )
 
-    column_width = (GRID_RIGHT - GRID_LEFT) / columns
-    column_boundaries = [round(GRID_LEFT + column_width * index) for index in range(columns + 1)]
-    row_boundaries = [GRID_TOP + ROW_HEIGHT * index for index in range(rows + 1)]
+    grid_left = GRID_LEFT * scale
+    grid_right = GRID_RIGHT * scale
+    grid_top = GRID_TOP * scale
+    row_height = ROW_HEIGHT * scale
+    column_width = (grid_right - grid_left) / columns
+    column_boundaries = [
+        round(grid_left + column_width * index) for index in range(columns + 1)
+    ]
+    row_boundaries = [grid_top + row_height * index for index in range(rows + 1)]
 
     for y in row_boundaries:
-        page.draw_line((GRID_LEFT, y), (GRID_RIGHT, y), color=(0, 0, 0), width=2)
+        page.draw_line((grid_left, y), (grid_right, y), color=(0, 0, 0), width=2 * scale)
     for x in column_boundaries:
-        page.draw_line((x, GRID_TOP), (x, row_boundaries[-1]), color=(0, 0, 0), width=2)
+        page.draw_line((x, grid_top), (x, row_boundaries[-1]), color=(0, 0, 0), width=2 * scale)
 
     position = 0
     for row in range(rows):
@@ -39,11 +50,11 @@ def synthetic_voter_page(
             position += 1
             if position > populated_cards:
                 continue
-            x = column_boundaries[column] + 14
-            y = row_boundaries[row] + 24
-            page.insert_text((x, y), f"CARD {position}", fontsize=10)
-            page.insert_text((x, y + 22), "FIELD ALPHA", fontsize=10)
-            page.insert_text((x, y + 44), "FIELD BETA", fontsize=10)
+            x = column_boundaries[column] + 14 * scale
+            y = row_boundaries[row] + 24 * scale
+            page.insert_text((x, y), f"CARD {position}", fontsize=10 * scale)
+            page.insert_text((x, y + 22 * scale), "FIELD ALPHA", fontsize=10 * scale)
+            page.insert_text((x, y + 44 * scale), "FIELD BETA", fontsize=10 * scale)
 
     pixmap = page.get_pixmap(dpi=72, alpha=False)
     result = RenderedPage(

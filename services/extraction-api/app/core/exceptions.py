@@ -79,6 +79,30 @@ class UnsupportedPageLayoutError(CardSegmentationError):
     retryable = False
 
 
+class FieldRegionExtractionError(ExtractionError):
+    code = "field_region_extraction_error"
+    default_message = "Unable to extract voter-card field regions."
+    retryable = True
+
+
+class InvalidFieldRegionGeometryError(FieldRegionExtractionError):
+    code = "invalid_field_region_geometry"
+    default_message = "The voter-card field-region geometry is invalid."
+    retryable = False
+
+
+class UnsupportedCardTemplateError(FieldRegionExtractionError):
+    code = "unsupported_card_template"
+    default_message = "No field-region template is available for this source layout."
+    retryable = False
+
+
+class PageContractMismatchError(FieldRegionExtractionError):
+    code = "page_contract_mismatch"
+    default_message = "The rendered page and segmentation result do not match."
+    retryable = False
+
+
 class OcrTimeoutError(ExtractionError):
     code = "ocr_timeout"
     default_message = "OCR timed out for this field."
