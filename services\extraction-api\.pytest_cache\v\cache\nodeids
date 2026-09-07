@@ -1,0 +1,19 @@
+[
+  "tests/test_health.py::test_health_reports_only_implemented_capabilities",
+  "tests/test_jobs.py::test_create_and_read_typed_job",
+  "tests/test_jobs.py::test_job_contract_rejects_unsupported_part",
+  "tests/test_jobs.py::test_missing_job_returns_safe_error",
+  "tests/test_pdf.py::test_corrupted_pdf_is_rejected_after_magic_validation",
+  "tests/test_pdf.py::test_inspection_detects_revision_part_language_and_pages",
+  "tests/test_pdf.py::test_inspection_rejects_language_mismatch",
+  "tests/test_pdf.py::test_inspection_rejects_unsupported_part",
+  "tests/test_pdf.py::test_magic_bytes_are_required_at_byte_zero",
+  "tests/test_pdf.py::test_render_endpoint_returns_private_png",
+  "tests/test_pdf.py::test_render_out_of_range_is_not_retryable",
+  "tests/test_pdf.py::test_render_uses_one_based_physical_page",
+  "tests/test_pdf.py::test_sha256_is_deterministic",
+  "tests/test_pdf.py::test_urdu_requires_a_real_pdf",
+  "tests/test_pdf.py::test_validate_endpoint_rejects_non_pdf",
+  "tests/test_pdf.py::test_validate_endpoint_returns_inspection",
+  "tests/test_supabase_contracts.py::test_job_maps_to_existing_processing_runs_shape"
+]

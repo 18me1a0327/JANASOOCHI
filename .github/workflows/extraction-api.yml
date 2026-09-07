@@ -1,0 +1,43 @@
+name: Extraction API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "services/extraction-api/**"
+      - ".github/workflows/extraction-api.yml"
+  pull_request:
+    paths:
+      - "services/extraction-api/**"
+      - ".github/workflows/extraction-api.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: services/extraction-api
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build focused test image
+        run: docker build --target test --tag janasoochi-extraction-test .
+      - name: Run focused tests in Docker
+        run: docker run --rm janasoochi-extraction-test
+      - name: Build production runtime image
+        run: docker build --target runtime --tag janasoochi-extraction-api .
+      - name: Verify runtime health
+        shell: bash
+        run: |
+          container_id=$(docker run --detach --publish 8097:8000 janasoochi-extraction-api)
+          trap 'docker logs "$container_id"; docker rm --force "$container_id"' EXIT
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8097/api/v1/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
