@@ -29,9 +29,10 @@ Phase 2 - Extraction foundation
 - Existing web TypeScript: PASS
 - Existing web lint: PASS
 - Existing web tests: PASS - 39 tests, 1 intentionally skipped OCR fixture
-- Local Docker execution: NOT RUN - Docker CLI is unavailable on this host.
-  GitHub Actions Docker test/runtime build and health verification are pending
-  the packaging regression fix recorded below.
+- Docker test target, focused tests, production runtime image, and live
+  container health check: PASS in GitHub Actions run `34106419872`
+- Local Docker execution: NOT RUN - Docker CLI is unavailable on this host;
+  the equivalent Linux container checks passed in GitHub Actions
 
 ## Current Task
 
@@ -68,9 +69,6 @@ Sprint complete. The repository is ready for the next exact task below.
 - No real electoral-roll PDF or voter data is committed to the repository.
 - FastAPI/Starlette currently emits two upstream deprecation warnings from its
   test client. They do not affect the service or the 17 passing tests.
-- The first GitHub Docker build failed because `.dockerignore` excluded the
-  focused tests. The root cause was reproduced and the exclusion was removed;
-  the corrected CI run is pending.
 
 ## Next Exact Task
 
