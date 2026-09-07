@@ -2,79 +2,94 @@
 
 ## Current Phase
 
-Phase 2 - Extraction foundation
+Phase 2B — Deterministic Card Segmentation
 
-## Completed In This Sprint
+## Completed
 
-- FastAPI service skeleton under `services/extraction-api`
-- Docker runtime and test targets
-- Typed environment configuration
-- Explicit extraction exception hierarchy and safe API error envelopes
-- Health endpoint with processing-version metadata
-- `%PDF-` magic-byte validation
-- SHA-256 checksum generation
-- Part 227-230, English/Telugu/Urdu, revision and page-count validation
-- PyMuPDF single physical-page PNG rendering
-- Typed asynchronous processing-job contracts
-- Existing `processing_runs` row mapping without a schema change
-- Matching TypeScript Documents-to-worker contracts
-- Focused GitHub Actions workflow that builds/tests the Docker test target and
-  verifies the runtime container health endpoint
+- Added typed rendered-pixel `BoundingBox`, `CardRegion`,
+  `PageSegmentationResult`, and page-isolated batch result contracts.
+- Added deterministic three-column by up-to-ten-row grid segmentation.
+- Detects voter content below page headers and above footers from visible grid
+  boundaries rather than splitting the full physical page blindly.
+- Validates exactly three columns, one to ten consistent rows, positive and
+  in-page geometry, consistent dimensions, ordered boundaries, and row-major
+  output.
+- Removes empty candidate cells using deterministic inner-region ink checks;
+  pages may produce zero through thirty validated cards.
+- Added typed invalid-geometry and unsupported-page-layout failures using the
+  existing Phase 2A exception hierarchy.
+- Added batch segmentation that records an expected failure for one physical
+  page and continues with all other pages.
+- Added an internal, in-memory debug PNG overlay with card boxes and positional
+  labels. No debug endpoint or persisted image was added.
+- Advertised only the implemented deterministic segmentation capability through
+  the health contract and advanced the pipeline/preprocessing versions.
+- No OCR, voter fields, database migration, production UI, or source data was
+  added or changed.
 
 ## Tests
 
-- Extraction API: PASS - 17 tests
-- Python compile check: PASS
-- Live local Uvicorn startup and `/api/v1/health`: PASS
-- Existing web TypeScript: PASS
-- Existing web lint: PASS
-- Existing web tests: PASS - 39 tests, 1 intentionally skipped OCR fixture
-- Docker test target, focused tests, production runtime image, and live
-  container health check: PASS in GitHub Actions run `34106419872`
-- Local Docker execution: NOT RUN - Docker CLI is unavailable on this host;
-  the equivalent Linux container checks passed in GitHub Actions
+- Focused Phase 2B segmentation tests: PASS — 11/11.
+- Complete extraction-service regression: PASS — 28/28, including all 17
+  pre-existing Phase 2A tests.
+- Python compile check for `app` and `tests`: PASS.
+- Covered full 3x10 layout, row-major ordering, bbox validity, partial final
+  row, shorter pages, empty/non-voter page, malformed geometry, unsupported
+  layout, deterministic repeatability, page-failure isolation, and debug PNG.
+- Web application tests/build were not rerun because this sprint changed no web,
+  Supabase, RLS, or production UI files.
 
-## Current Task
+## Segmentation
 
-Sprint complete. The repository is ready for the next exact task below.
+- Algorithm: grayscale copy, dark-line projections, regularly spaced horizontal
+  boundary selection, four-boundary/three-column geometry selection, then
+  deterministic per-cell inner-content validation.
+- Bounding boxes: integer `x1, y1, x2, y2` values in the existing rendered PNG
+  pixel coordinate system.
+- Full-page behavior: a validated ten-row, three-column grid with content in all
+  cells returns 30 row-major card regions.
+- Partial-page behavior: shorter grids and empty final cells return only regions
+  with plausible content; candidates are never promoted merely to meet an
+  expected Part total.
+- `card_index` is a one-based page-position index only and never an authoritative
+  voter serial number.
 
-## Not Started
+## Files Changed
 
-- Supabase-backed job repository and authenticated worker boundary
-- 3x10 voter-card segmentation
-- field-region crops
-- English/Telugu OCR
-- field parser and validation
-- targeted field/card retry execution
-- manually verified benchmark fixtures and accuracy report
-- benchmark and processing-detail UI
+- `services/extraction-api/app/__init__.py`
+- `services/extraction-api/app/api/health.py`
+- `services/extraction-api/app/core/config.py`
+- `services/extraction-api/app/core/exceptions.py`
+- `services/extraction-api/app/models/segmentation.py`
+- `services/extraction-api/app/vision/__init__.py`
+- `services/extraction-api/app/vision/segmentation.py`
+- `services/extraction-api/app/vision/debug.py`
+- `services/extraction-api/tests/segmentation_fixtures.py`
+- `services/extraction-api/tests/test_segmentation.py`
+- `services/extraction-api/tests/test_health.py`
+- `services/extraction-api/README.md`
+- `docs/CODEX_CHECKPOINT.md`
 
-## Do Not Rebuild
+## Known Limitations
 
-- Supabase Auth and role permissions
-- Search
-- Documents UI and current browser-side fallback
-- Review foundation
-- Data Quality foundation
-- Administration
-- PDF source viewer
-- existing RLS and voter data
-
-## Known Issues
-
-- The development job repository is in process only. It must be replaced by the
-  existing Supabase `processing_runs` table before production worker deployment.
-- OCR is deliberately not configured. Health and job responses report no OCR
-  engine instead of claiming OCR capability or accuracy.
-- No real electoral-roll PDF or voter data is committed to the repository.
-- FastAPI/Starlette currently emits two upstream deprecation warnings from its
-  test client. They do not affect the service or the 17 passing tests.
+- Tests use synthetic, non-sensitive layouts. The boundary thresholds still need
+  validation against a small authorized EN/TE representative-page benchmark
+  kept outside Git before full-roll processing.
+- Phase 2B intentionally handles fixed, visible three-column voter grids. It does
+  not yet deskew strongly rotated pages or infer layouts with missing structural
+  lines.
+- Content validation establishes that a region is non-empty; OCR and semantic
+  voter-card validation are intentionally deferred.
+- Urdu remains only a validated language contract. Real Urdu processing remains
+  blocked until valid `%PDF-` source files are supplied.
+- FastAPI/Starlette emits two upstream test-client deprecation warnings. Pytest
+  also warns that its optional local cache directory is not writable; neither
+  warning affects the 28 passing tests.
 
 ## Next Exact Task
 
-Implement deterministic 3-column x 10-row voter-card segmentation for a small,
-authorized set of representative English and Telugu source pages. Preserve
-one-based physical page numbers and normalized bounding boxes, continue after an
-individual card failure, add focused synthetic geometry tests plus authorized
-page fixtures outside Git, and update this checkpoint. Do not implement full-roll
-OCR, ML, DL, or AI in that sprint.
+Phase 2C — Field-Region Extraction / Card Parsing Foundation
+
+Define deterministic field-region crops inside validated card boxes, preserve
+page-relative coordinates, add typed raw field-region contracts and synthetic
+tests, and do not add OCR, ML, DL, AI, or full-roll processing.

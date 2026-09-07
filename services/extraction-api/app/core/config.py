@@ -3,6 +3,7 @@ from functools import lru_cache
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app import __version__
 from app.models.common import PipelineVersions
 
 
@@ -15,7 +16,7 @@ class Settings(BaseSettings):
     )
 
     service_name: str = "JANASOOCHI Extraction API"
-    service_version: str = "0.1.0"
+    service_version: str = __version__
     environment: str = "development"
     log_level: str = "INFO"
     api_prefix: str = "/api/v1"
@@ -24,8 +25,8 @@ class Settings(BaseSettings):
     max_render_dpi: int = Field(default=400, ge=72, le=600)
     cors_origins: str = "http://localhost:3000"
 
-    pipeline_version: str = "2.0.0"
-    preprocessing_version: str = "1.0.0"
+    pipeline_version: str = "2.1.0"
+    preprocessing_version: str = "1.1.0"
     parser_version: str = "1.0.0"
     ocr_engine: str | None = None
     ocr_engine_version: str | None = None

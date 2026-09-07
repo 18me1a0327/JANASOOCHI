@@ -1,9 +1,10 @@
 # JANASOOCHI Extraction API
 
 Phase 2 foundation for reliable server-side electoral-roll extraction. This
-service currently validates and fingerprints PDFs, renders one physical page at
-a time, and exposes typed processing-job contracts. It does not yet perform
-card segmentation, OCR, field parsing, or full-roll processing.
+service validates and fingerprints PDFs, renders one physical page at a time,
+exposes typed processing-job contracts, and deterministically segments visible
+three-column voter grids into up to 30 ordered card regions. It does not yet
+perform OCR, field parsing, or full-roll processing.
 
 ## Safety boundary
 
@@ -17,6 +18,19 @@ card segmentation, OCR, field parsing, or full-roll processing.
   in service logs.
 - The future Supabase secret key is backend-only and must never use a
   `NEXT_PUBLIC_` name.
+- Segmentation returns integer `x1, y1, x2, y2` coordinates in the rendered PNG
+  coordinate system. Empty candidate cells do not become card records.
+
+## Deterministic card segmentation
+
+`app.vision.segment_page` detects regularly spaced horizontal grid boundaries,
+validates four vertical boundaries for exactly three columns, and checks each
+candidate's inner area for content. Results are ordered row first, then column;
+`card_index` is positional and is never treated as an electoral-roll serial.
+Non-voter pages return zero cards, while malformed and unsupported layouts use
+typed extraction errors. `segment_pages` isolates an expected failure to its
+physical page. `app.vision.debug.render_segmentation_overlay` creates an
+in-memory development PNG with boxes and indices; it is not exposed by an API.
 
 ## Local development
 

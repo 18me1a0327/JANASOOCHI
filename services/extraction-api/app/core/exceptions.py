@@ -67,6 +67,18 @@ class CardSegmentationError(ExtractionError):
     retryable = True
 
 
+class InvalidCardGeometryError(CardSegmentationError):
+    code = "invalid_card_geometry"
+    default_message = "The detected voter-card geometry is invalid."
+    retryable = False
+
+
+class UnsupportedPageLayoutError(CardSegmentationError):
+    code = "unsupported_page_layout"
+    default_message = "This page does not use the supported three-column voter layout."
+    retryable = False
+
+
 class OcrTimeoutError(ExtractionError):
     code = "ocr_timeout"
     default_message = "OCR timed out for this field."

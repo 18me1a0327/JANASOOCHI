@@ -20,5 +20,6 @@ async def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
             "pdf.sha256",
             "pdf.page_rendering",
             "processing_job.contracts",
+            "card_segmentation.deterministic_3x10",
         ],
     )
