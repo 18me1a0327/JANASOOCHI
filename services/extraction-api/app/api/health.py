@@ -22,5 +22,7 @@ async def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
             "processing_job.contracts",
             "card_segmentation.deterministic_3x10",
             "field_regions.en_te_fixed_card_v1",
+            "ocr.tesseract_en_te",
+            "ocr.paddle_v3_adapter",
         ],
     )

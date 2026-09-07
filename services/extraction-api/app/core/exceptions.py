@@ -109,6 +109,31 @@ class OcrTimeoutError(ExtractionError):
     retryable = True
 
 
+class OcrEngineUnavailableError(ExtractionError):
+    code = "ocr_engine_unavailable"
+    default_message = "The configured OCR engine is unavailable."
+    status_code = 503
+    retryable = True
+
+
+class OcrExecutionError(ExtractionError):
+    code = "ocr_execution_error"
+    default_message = "The OCR engine could not process this field."
+    retryable = True
+
+
+class OcrOutputParseError(ExtractionError):
+    code = "ocr_output_parse_error"
+    default_message = "The OCR engine returned an unreadable response."
+    retryable = True
+
+
+class UnsupportedOcrLanguageError(ExtractionError):
+    code = "unsupported_ocr_language"
+    default_message = "OCR is currently enabled only for English and Telugu source records."
+    retryable = False
+
+
 class EmptyOcrResultError(ExtractionError):
     code = "empty_ocr_result"
     default_message = "OCR did not return readable text."

@@ -7,6 +7,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /service
 
+RUN apt-get update && \
+    apt-get install --yes --no-install-recommends \
+        tesseract-ocr \
+        tesseract-ocr-eng \
+        tesseract-ocr-tel && \
+    rm -rf /var/lib/apt/lists/* && \
+    tesseract --list-langs | grep --quiet --line-regexp eng && \
+    tesseract --list-langs | grep --quiet --line-regexp tel
+
 COPY requirements.txt ./
 RUN python -m pip install --upgrade pip && \
     python -m pip install --requirement requirements.txt

@@ -5,7 +5,8 @@ service validates and fingerprints PDFs, renders one physical page at a time,
 exposes typed processing-job contracts, and deterministically segments visible
 three-column voter grids into up to 30 ordered card regions. Validated English
 and Telugu cards can be split into typed field crops for the eight required
-voter fields. It does not yet perform OCR or full-roll processing.
+voter fields. Field-specific English and Telugu OCR adapters are available; the
+service still does not perform full-roll processing.
 
 ## Safety boundary
 
@@ -43,6 +44,22 @@ overlays exist only in memory and are not persisted or publicly exposed.
 `extract_page_field_regions` isolates an invalid card and continues the page.
 Urdu has no Phase 2C template and is rejected until valid source files and a
 verified layout are available.
+
+## English and Telugu OCR
+
+The default Docker image includes Tesseract plus verified `eng` and `tel`
+language packs. The adapter sends in-memory PNG bytes through standard input,
+uses numeric/alphanumeric restrictions for Serial, Age, and EPIC, and never
+writes a field crop to disk. Raw engine transcription is retained separately
+from normalized search/validation text. Confidence is nullable and is populated
+only from an engine-reported value.
+
+A lazy PaddleOCR v3 text-recognition adapter supports the official English and
+Telugu mobile recognition model contracts. Its heavyweight runtime and model
+downloads are intentionally excluded from the default Search/runtime image;
+install `requirements-paddle.txt` only in a controlled benchmark worker. The
+benchmark helper reports exact normalized accuracy solely against explicitly
+supplied expected values and does not claim production accuracy.
 
 ## Local development
 

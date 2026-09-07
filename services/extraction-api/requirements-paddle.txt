@@ -1,0 +1,4 @@
+# Optional benchmark/runtime only. The default production image uses Tesseract.
+# Paddle models are downloaded explicitly by the operator, never during Search.
+paddlepaddle>=3.0,<4
+paddleocr==3.7.0
