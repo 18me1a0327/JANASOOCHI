@@ -25,6 +25,7 @@ async def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
             "ocr.tesseract_en_te",
             "ocr.paddle_v3_adapter",
             "ocr.targeted_retry_v1",
+            "benchmark.ground_truth_import_v1",
         ],
     )
 

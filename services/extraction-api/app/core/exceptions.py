@@ -146,6 +146,18 @@ class OcrPreprocessingError(ExtractionError):
     retryable = False
 
 
+class GroundTruthImportError(ExtractionError):
+    code = "ground_truth_import_error"
+    default_message = "Unable to import the ground-truth dataset."
+    status_code = 400
+    retryable = False
+
+
+class GroundTruthValidationError(GroundTruthImportError):
+    code = "ground_truth_validation_error"
+    default_message = "The ground-truth dataset failed validation."
+
+
 class InvalidSerialError(ExtractionError):
     code = "invalid_serial"
     default_message = "The extracted serial number is invalid."

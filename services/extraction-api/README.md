@@ -79,6 +79,27 @@ confidence is selected while all attempts remain in the typed result. This
 module does not retry whole pages or documents and does not persist attempts;
 future job storage can serialize the result without rerunning successful work.
 
+## Human-verified benchmark ground truth
+
+Phase 2F adds strict, engine-independent ground-truth contracts and a
+header-only CSV template. Each annotation links to a revision, supported Part
+and serial, EN/TE source edition, PDF checksum, physical page, card index,
+optional bounding box, Supabase verifier UUID, and timezone-aware verification
+timestamp. RAW, deterministically NORMALIZED, and human-entered GOLD values
+remain separate.
+
+Validate a private authorized annotation file with:
+
+```powershell
+python -m app.benchmark C:\private\authorized-ground-truth.csv
+```
+
+The validator prints coverage metadata only, never voter fields. It rejects
+Urdu, unsupported Parts, out-of-range serials, malformed evidence, invalid
+verifier audit data, mismatched GOLD serials, duplicate cases, and duplicate
+Part/Serial/language identities. See `docs/GROUND_TRUTH.md`. No populated
+ground-truth file, voter crop, or accuracy claim is committed by this phase.
+
 ## Local development
 
 Requires Python 3.12 or newer.

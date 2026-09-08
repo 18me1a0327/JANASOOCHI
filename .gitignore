@@ -28,6 +28,10 @@ temp/
 *.pdf
 ocr-pages/
 ocr-output/
+ground-truth-private/
+*ground-truth*.csv
+*ground-truth*.json
+!services/extraction-api/docs/ground-truth-template.csv
 JANASOOCHI-VSCode.zip
 deploy-*.zip
 .venv/
@@ -36,3 +40,4 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
