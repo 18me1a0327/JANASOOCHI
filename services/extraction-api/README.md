@@ -100,6 +100,19 @@ verifier audit data, mismatched GOLD serials, duplicate cases, and duplicate
 Part/Serial/language identities. See `docs/GROUND_TRUTH.md`. No populated
 ground-truth file, voter crop, or accuracy claim is committed by this phase.
 
+## OCR accuracy comparison
+
+Phase 2G adds a typed, privacy-safe comparison framework for evaluating
+Tesseract, PaddleOCR, preprocessing, and targeted-retry configurations against
+the identical validated GOLD case set. It reports exact field metrics, name
+CER/WER, invalid EPIC formats, age error, EN/TE and Part-level aggregates,
+retry impact, failures, runtime, optional memory observations, and deterministic
+error classes. Machine-readable JSON contains metrics only and never voter
+values. See `docs/OCR_COMPARISON.md`.
+
+No populated human-verified GOLD records currently exist in this repository,
+so no real OCR accuracy or winning configuration is reported.
+
 ## Local development
 
 Requires Python 3.12 or newer.

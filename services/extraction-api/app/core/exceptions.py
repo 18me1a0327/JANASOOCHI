@@ -158,6 +158,13 @@ class GroundTruthValidationError(GroundTruthImportError):
     default_message = "The ground-truth dataset failed validation."
 
 
+class BenchmarkComparisonError(ExtractionError):
+    code = "benchmark_comparison_error"
+    default_message = "Unable to compare OCR configurations against the benchmark."
+    status_code = 400
+    retryable = False
+
+
 class InvalidSerialError(ExtractionError):
     code = "invalid_serial"
     default_message = "The extracted serial number is invalid."

@@ -26,6 +26,7 @@ async def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
             "ocr.paddle_v3_adapter",
             "ocr.targeted_retry_v1",
             "benchmark.ground_truth_import_v1",
+            "benchmark.ocr_comparison_v1",
         ],
     )
 
