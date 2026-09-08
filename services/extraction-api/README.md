@@ -61,6 +61,24 @@ install `requirements-paddle.txt` only in a controlled benchmark worker. The
 benchmark helper reports exact normalized accuracy solely against explicitly
 supplied expected values and does not claim production accuracy.
 
+## Targeted OCR retry and recovery
+
+`app.ocr.recognize_card_fields` retries only the field that produced a
+retryable OCR error. A field receives at most two retries after the original
+attempt, using the fixed sequence `original`,
+`grayscale_high_contrast`, and `binary_otsu`. Successful fields on the same
+card are not rerun, and a terminal field failure does not stop the remaining
+fields.
+
+Every attempt records its number, preprocessing variant, engine result or
+user-safe error, and retryability. Original crop bytes and geometry are never
+modified. Low-confidence retry is opt-in through `OcrRetryPolicy`; the service
+does not invent a confidence threshold. When an explicit threshold triggers
+multiple successful attempts, the result with the highest real engine
+confidence is selected while all attempts remain in the typed result. This
+module does not retry whole pages or documents and does not persist attempts;
+future job storage can serialize the result without rerunning successful work.
+
 ## Local development
 
 Requires Python 3.12 or newer.
@@ -101,3 +119,4 @@ an authenticated, backend-only Supabase client and persist to the existing
 Processing versions are returned by `/health` and every job, and map into the
 existing `processing_runs.metrics.versions` JSON field. This lets future workers
 selectively reprocess records without re-running every PDF.
+

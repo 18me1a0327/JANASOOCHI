@@ -4,6 +4,7 @@ from app.ocr.base import OcrAdapter
 from app.ocr.benchmark import benchmark_adapter
 from app.ocr.paddle import PaddleOcrAdapter
 from app.ocr.pipeline import recognize_card_fields
+from app.ocr.preprocessing import preprocess_field_region
 from app.ocr.tesseract import TesseractOcrAdapter
 
 __all__ = [
@@ -11,5 +12,7 @@ __all__ = [
     "PaddleOcrAdapter",
     "TesseractOcrAdapter",
     "benchmark_adapter",
+    "preprocess_field_region",
     "recognize_card_fields",
 ]
+

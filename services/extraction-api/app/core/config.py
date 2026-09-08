@@ -25,8 +25,8 @@ class Settings(BaseSettings):
     max_render_dpi: int = Field(default=400, ge=72, le=600)
     cors_origins: str = "http://localhost:3000"
 
-    pipeline_version: str = "2.3.0"
-    preprocessing_version: str = "1.2.0"
+    pipeline_version: str = "2.4.0"
+    preprocessing_version: str = "1.3.0"
     parser_version: str = "1.1.0"
     ocr_engine: str | None = None
     ocr_engine_version: str | None = None
@@ -56,3 +56,4 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+

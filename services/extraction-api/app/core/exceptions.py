@@ -140,6 +140,12 @@ class EmptyOcrResultError(ExtractionError):
     retryable = True
 
 
+class OcrPreprocessingError(ExtractionError):
+    code = "ocr_preprocessing_error"
+    default_message = "Unable to prepare this field for another OCR attempt."
+    retryable = False
+
+
 class InvalidSerialError(ExtractionError):
     code = "invalid_serial"
     default_message = "The extracted serial number is invalid."
@@ -154,3 +160,4 @@ class JobNotFoundError(ExtractionError):
     code = "job_not_found"
     default_message = "Processing job not found."
     status_code = 404
+
