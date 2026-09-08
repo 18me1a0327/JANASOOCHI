@@ -117,7 +117,7 @@ function Shell({ role, lang, setLang }: {
     return <div className={`app-shell ${collapsed ? 'menu-collapsed' : ''}`} dir={lang === 'ur' ? 'rtl' : 'ltr'}>
 <aside className={`side-menu ${mobile ? 'open' : ''}`}>
 <NavLink className="side-brand" to="/search" onClick={() => setMobile(false)}>
-<img src="/janasoochi-mark-192.png" alt=""/>
+<i className="brand-mark" aria-hidden="true"><img src="/janasoochi-mark-192.png" alt=""/></i>
 <span>
 <strong>జనసూచి</strong>
 <small>Janasoochi</small>
@@ -1617,7 +1617,7 @@ export default function App() {
     function setLang(next: Lang) { localStorage.setItem('pv-lang', next); setLangState(next); }
     if (loading)
         return <div className="loading-screen">
-<img className="loading-logo" src="/janasoochi-mark-192.png" alt=""/>
+<i className="loading-logo" role="img" aria-label="Janasoochi"><img src="/janasoochi-mark-192.png" alt=""/></i>
 <p>Loading authorized workspace…</p>
 </div>;
     return <Routes>
@@ -1625,3 +1625,4 @@ export default function App() {
 <Route path="*" element={user ? <Shell role={role} lang={lang} setLang={setLang}/> : <Navigate to="/login"/>}/>
 </Routes>;
 }
+

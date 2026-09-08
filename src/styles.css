@@ -77,3 +77,13 @@
 @media(max-width:520px){.review-toolbar{grid-template-columns:1fr}.review-toolbar select{width:100%}}
 .login-logo{width:min(230px,75%);height:auto}
 @media(max-width:620px){.language-coverage>header{align-items:flex-start;flex-direction:column}.language-coverage>header small{text-align:left}.language-coverage>div{grid-template-columns:1fr}.language-coverage article{border-right:0;border-bottom:1px solid #e8ebef}.language-coverage article:last-child{border-bottom:0}.logical-source-list>div:first-child{flex-direction:column}.logical-source-list li{align-items:flex-start;flex-wrap:wrap}}
+
+/* Keep the emblem legible at compact UI sizes by cropping the wordmark below it. */
+.brand-mark,.loading-logo{display:block;overflow:hidden;background:#fff;border:1px solid #dbe5f3;box-shadow:0 2px 8px #02081738;font-style:normal;flex:0 0 auto}
+.brand-mark{width:44px;height:44px;border-radius:11px}
+.brand-mark img{display:block;width:54px;height:54px;max-width:none;object-fit:contain;transform:translate(-5px,-1px)}
+.menu-collapsed .side-brand .brand-mark{display:block;width:44px;height:44px}
+.menu-collapsed .side-brand .brand-mark img{width:54px;height:54px}
+.loading-logo{width:72px;height:72px;border-radius:17px;margin:auto}
+.loading-logo img{display:block;width:88px;height:88px;max-width:none;object-fit:contain;transform:translate(-8px,-2px)}
+
