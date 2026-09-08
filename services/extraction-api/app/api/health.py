@@ -27,6 +27,7 @@ async def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
             "ocr.targeted_retry_v1",
             "benchmark.ground_truth_import_v1",
             "benchmark.ocr_comparison_v1",
+            "benchmark.pipeline_selection_gate_v1",
         ],
     )
 

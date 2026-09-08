@@ -113,6 +113,19 @@ values. See `docs/OCR_COMPARISON.md`.
 No populated human-verified GOLD records currently exist in this repository,
 so no real OCR accuracy or winning configuration is reported.
 
+## Extraction pipeline selection and freeze
+
+Phase 2H adds explicit evidence gates and a deterministic, auditable freeze
+manifest for a future measured winner. Selection requires a verified GOLD
+checksum, EN/TE and Parts 227–230 coverage, identical measured candidates, and
+caller-supplied exact-field, CER/WER, failure, empty-output, and optional runtime
+limits. Gates apply overall and per language so a weak Telugu or EPIC result
+cannot be hidden by an overall average. See `docs/PIPELINE_SELECTION.md`.
+
+Because the real Phase 2G benchmark is still unavailable, no OCR engine is
+selected, no populated freeze manifest exists, and production configuration is
+unchanged.
+
 ## Local development
 
 Requires Python 3.12 or newer.

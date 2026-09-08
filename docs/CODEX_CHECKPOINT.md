@@ -2,111 +2,102 @@
 
 ## Current Phase
 
-Phase 2G — OCR Accuracy Comparison (PARTIAL)
+Phase 2H — Select and Freeze Winning Extraction Pipeline (PARTIAL)
 
 ## Status
 
-PARTIAL. The deterministic comparison framework is complete and tested, but
-the repository contains zero authorized human-verified GOLD records. No real
-OCR engine was scored and no accuracy percentage or winning candidate is
-reported.
+PARTIAL. The evidence gate, deterministic selection contract, and auditable
+freeze-manifest framework are complete and tested. No OCR engine was selected,
+frozen, or activated because Phase 2F contains zero authorized human-verified
+GOLD records and Phase 2G contains no real measured candidates.
 
 ## Completed
 
-- Added strict typed contracts for OCR configurations, per-case baseline and
-  final-after-retry observations, field metrics, aggregates, retry impact,
-  ranked configurations, and the machine-readable report.
-- Enforced an identical GOLD case set for every compared configuration;
-  missing, extra, duplicate, and unknown observations fail safely.
-- Included failed and empty OCR outputs in the denominator rather than
-  silently excluding them.
-- Implemented exact normalized metrics for Serial, EPIC, voter name, relation
-  name/type, house, age, and gender.
-- Implemented corpus Character Error Rate and Word Error Rate for voter and
-  relation names.
-- Implemented EPIC invalid-format counts plus parseable age count, total
-  absolute age error, and mean absolute age error.
-- Added overall, English, Telugu, and Parts 227–230 aggregation.
-- Added baseline-versus-final targeted-retry accuracy and absolute improvement
-  for every field.
-- Added retry rate, extraction failure count, empty OCR count, runtime, optional
-  approximate peak memory, successful card count, and deterministic error
-  classifications.
-- Added deterministic privacy-safe JSON serialization containing metrics only,
-  never RAW OCR or GOLD voter values.
-- Added deterministic candidate ranking that prioritizes EPIC and Serial,
-  followed by Telugu name quality, overall field accuracy, and runtime. This
-  ranking is not populated without real measured inputs.
-- Added `benchmark.ocr_comparison_v1`; service version is `0.7.0` and pipeline
-  version is `2.6.0`.
-- Added comparison documentation without any hard-coded benchmark numbers.
+- Added a strict `PipelineSelectionPolicy` requiring caller-supplied quality
+  limits rather than hidden or fabricated accuracy thresholds.
+- Requires Parts 227–230, English and Telugu, a verified GOLD checksum,
+  configurable minimum GOLD card/configuration counts, exact-accuracy gates for
+  all eight fields, CER/WER gates for names, extraction-failure and empty-output
+  limits, and an optional runtime-per-card limit.
+- Applies field metrics overall and independently to English and Telugu so an
+  overall average cannot hide weak Telugu or a critical EPIC/Serial result.
+- Validates that every measured configuration appears exactly once in the
+  Phase 2G ranking.
+- Selects the first ranked candidate that passes every explicit gate; blocks
+  safely when evidence is incomplete or no candidate qualifies.
+- Added candidate eligibility and privacy-safe rejection-reason contracts.
+- Added deterministic comparison-report hashing so a selection cannot be
+  reused with a different or modified report.
+- Added an auditable `FrozenPipelineManifest` containing the exact engine,
+  engine version, preprocessing/retry configuration, metrics snapshot, quality
+  policy, GOLD/report checksums, processing versions, approver UUID,
+  timezone-aware approval time, and decision reason.
+- Added deterministic manifest JSON and SHA-256 generation containing no voter
+  values.
+- Manifest creation does not persist or activate a pipeline implicitly.
+- Added `benchmark.pipeline_selection_gate_v1`; service version is `0.8.0` and
+  pipeline version is `2.7.0`.
+- Added focused documentation and tests.
 - Did not change Auth, roles, Search, Review, Administration, logo, PWA,
-  deployment, Supabase schema, or RLS.
+  deployment, Supabase schema, RLS, or production OCR configuration.
 
-## Benchmark
+## Selection / Freeze Result
 
 - GOLD cards: 0
 - English cards: 0
 - Telugu cards: 0
 - Parts represented: none
-- Real configurations compared: none
-- Tesseract: not measured
-- PaddleOCR: not measured
-- Targeted retry: not measured against GOLD
+- Real measured candidates: 0
+- Selected configuration: none
+- Frozen manifest: none
+- Production OCR engine: unset
 - Real OCR accuracy measured: no
 
-## Metrics
+## Artifacts
 
-- Exact field accuracy: framework implemented; real values unavailable
-- CER/WER: framework implemented; real values unavailable
-- Failures/empty outputs: included by contract; real values unavailable
-- Retry improvement: framework implemented; real values unavailable
-- Runtime/resource observations: supported by contract; real values unavailable
-
-## Artifacts / Results
-
-- `services/extraction-api/app/models/ocr_comparison.py`
-- `services/extraction-api/app/benchmark/comparison.py`
-- `services/extraction-api/tests/test_ocr_comparison.py`
-- `services/extraction-api/docs/OCR_COMPARISON.md`
-- No populated comparison JSON was generated because doing so would imply a
-  measurement without verified GOLD input.
+- `services/extraction-api/app/models/pipeline_selection.py`
+- `services/extraction-api/app/benchmark/selection.py`
+- `services/extraction-api/tests/test_pipeline_selection.py`
+- `services/extraction-api/docs/PIPELINE_SELECTION.md`
+- No populated freeze manifest was generated or committed.
 
 ## Tests
 
-- Focused OCR comparison and health tests: PASS — 17 passed.
-- Complete extraction-service regression: PASS — 92 passed, 2 host-only
+- Focused Phase 2G/2H comparison, selection, and health tests: PASS — 28 passed.
+- Complete extraction-service regression: PASS — 103 passed, 2 host-only
   Tesseract runtime skips, 3 upstream/cache warnings.
 - Python compile check for `app` and `tests`: PASS.
-- Synthetic metric coverage includes perfect and incorrect exact matches,
-  missing/failure inclusion, normalization, CER, WER, age error, identical
-  engine sample enforcement, retry before/after, EN/TE aggregation, Part-level
-  aggregation, empty benchmark safety, EPIC validation/error classification,
-  privacy-safe output, deterministic repeatability, and EPIC-first candidate
-  ranking.
+- Covered empty/incomplete benchmark blocking, required field gates, EPIC-first
+  safety, per-language Telugu protection, no-eligible-candidate behavior,
+  runtime limits, exact config/version/metrics/audit capture, report-tamper
+  rejection, timezone enforcement, deterministic serialization/checksums, and
+  absence of voter values in manifests.
+- Reproduced one synthetic test failure caused by assuming configuration list
+  order; fixed the fixture to select the failing candidate by stable ID, then
+  reran all focused and full regression tests successfully.
 
 ## Known Limitations / Blocking Evidence
 
-- No authorized, manually verified English/Telugu benchmark rows are available.
-- The repository contains only the header-only annotation template and no real
-  voter record, voter-card crop, source PDF, or populated benchmark artifact.
-- Tesseract, PaddleOCR, and preprocessing/retry variants cannot be ranked until
-  the same private verified GOLD cases are processed by each configuration.
-- No real OCR accuracy has been measured yet.
-- Phase 2H cannot select or freeze a winner until this Phase 2G framework is run
-  on a validated real Phase 2F subset spanning English, Telugu, and Parts
-  227–230.
-- Urdu remains outside the Phase 2G benchmark and blocked pending valid source
-  files and processing support.
+- No authorized, manually verified English/Telugu GOLD rows are available.
+- Tesseract, PaddleOCR, preprocessing variants, and targeted retry have not
+  been scored on the same real GOLD cases.
+- No real Phase 2G comparison JSON exists, so no evidence-based winner can be
+  selected or frozen.
+- A production policy still needs explicit, authorized quality thresholds.
+- Phase 2H must remain PARTIAL until the private Phase 2F/2G evidence passes
+  these gates and an authorized approver records the decision.
+- Urdu remains outside the benchmark/freeze decision pending valid source files
+  and implemented processing support.
 - FastAPI/Starlette emits two upstream test-client deprecation warnings; pytest
-  also cannot write its locked local cache. These do not affect passing tests.
+  cannot write its locked local cache. These do not affect passing tests.
 
 ## Next Exact Task
 
-Phase 2H — Select and Freeze Winning Extraction Pipeline
+Phase 2F/2G Evidence Run — First Real Measured Candidate Set
 
-Before Phase 2H can proceed, securely supply a private Phase 2F GOLD CSV with a
-human-verified EN/TE subset spanning Parts 227–230, validate it, run every OCR
-configuration on that identical case set, and generate the private Phase 2G
-comparison JSON. Do not commit voter values or source images.
+Securely supply a private validated human-verified EN/TE GOLD subset spanning
+Parts 227–230. Run Tesseract, PaddleOCR, and targeted-retry configurations on
+the identical cases, generate the private Phase 2G comparison JSON, define the
+authorized production quality policy, and rerun Phase 2H to create the first
+real freeze manifest. Do not commit voter values, PDFs, or card images.
 

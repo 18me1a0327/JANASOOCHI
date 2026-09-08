@@ -12,6 +12,13 @@ from app.benchmark.comparison import (
     comparison_report_json,
     edit_distance,
 )
+from app.benchmark.selection import (
+    comparison_report_sha256,
+    freeze_selected_pipeline,
+    frozen_manifest_json,
+    frozen_manifest_sha256,
+    select_pipeline_candidate,
+)
 
 __all__ = [
     "GROUND_TRUTH_CSV_COLUMNS",
@@ -22,5 +29,10 @@ __all__ = [
     "compare_ocr_configurations",
     "comparison_report_json",
     "edit_distance",
+    "comparison_report_sha256",
+    "freeze_selected_pipeline",
+    "frozen_manifest_json",
+    "frozen_manifest_sha256",
+    "select_pipeline_candidate",
 ]
 

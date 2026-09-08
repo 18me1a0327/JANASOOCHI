@@ -165,6 +165,13 @@ class BenchmarkComparisonError(ExtractionError):
     retryable = False
 
 
+class PipelineSelectionBlockedError(ExtractionError):
+    code = "pipeline_selection_blocked"
+    default_message = "Pipeline selection requires verified benchmark evidence."
+    status_code = 422
+    retryable = False
+
+
 class InvalidSerialError(ExtractionError):
     code = "invalid_serial"
     default_message = "The extracted serial number is invalid."
