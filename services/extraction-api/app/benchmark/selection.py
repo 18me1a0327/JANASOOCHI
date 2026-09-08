@@ -179,6 +179,11 @@ def freeze_selected_pipeline(
         raise PipelineSelectionBlockedError(
             "The selection does not belong to this comparison report."
         )
+    verified_selection = select_pipeline_candidate(report, selection.policy)
+    if verified_selection != selection:
+        raise PipelineSelectionBlockedError(
+            "The supplied selection does not match the report and policy."
+        )
     selected = next(
         (
             item

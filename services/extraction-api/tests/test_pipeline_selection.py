@@ -172,6 +172,14 @@ def _report(
     )
 
 
+def _engine_for(report, configuration_id: str) -> str:
+    return next(
+        item.configuration.ocr_engine.value
+        for item in report.configurations
+        if item.configuration.configuration_id == configuration_id
+    )
+
+
 def test_empty_phase_2g_report_blocks_selection() -> None:
     empty = compare_ocr_configurations([], [], [])
     with pytest.raises(PipelineSelectionBlockedError) as captured:
@@ -273,7 +281,7 @@ def test_freeze_manifest_captures_exact_versions_metrics_and_audit() -> None:
     report = _report()
     selection = select_pipeline_candidate(report, _policy())
     versions = PipelineVersions(
-        pipeline_version="2.6.0",
+        pipeline_version="2.7.0",
         preprocessing_version="1.3.0",
         parser_version="1.1.0",
         ocr_engine="paddleocr",
@@ -302,9 +310,11 @@ def test_freeze_rejects_selection_from_another_report() -> None:
             tampered,
             selection,
             PipelineVersions(
-                pipeline_version="2.6.0",
+                pipeline_version="2.7.0",
                 preprocessing_version="1.3.0",
                 parser_version="1.1.0",
+                ocr_engine=_engine_for(tampered, selection.selected_configuration_id),
+                ocr_engine_version="synthetic-test",
             ),
             approved_by=UUID("00000000-0000-0000-0000-000000000002"),
             approved_at=datetime(2026, 9, 8, tzinfo=timezone.utc),
@@ -320,9 +330,11 @@ def test_freeze_requires_timezone_aware_approval() -> None:
             report,
             selection,
             PipelineVersions(
-                pipeline_version="2.6.0",
+                pipeline_version="2.7.0",
                 preprocessing_version="1.3.0",
                 parser_version="1.1.0",
+                ocr_engine=_engine_for(report, selection.selected_configuration_id),
+                ocr_engine_version="synthetic-test",
             ),
             approved_by=UUID("00000000-0000-0000-0000-000000000002"),
             approved_at=datetime(2026, 9, 8),
@@ -339,9 +351,11 @@ def test_frozen_manifest_serialization_and_checksum_are_deterministic() -> None:
         "decision_reason": "Synthetic test approval only",
     }
     versions = PipelineVersions(
-        pipeline_version="2.6.0",
+        pipeline_version="2.7.0",
         preprocessing_version="1.3.0",
         parser_version="1.1.0",
+        ocr_engine=_engine_for(report, selection.selected_configuration_id),
+        ocr_engine_version="synthetic-test",
     )
     first = freeze_selected_pipeline(report, selection, versions, **arguments)
     second = freeze_selected_pipeline(report, selection, versions, **arguments)
@@ -349,4 +363,50 @@ def test_frozen_manifest_serialization_and_checksum_are_deterministic() -> None:
     assert frozen_manifest_sha256(first) == frozen_manifest_sha256(second)
     assert "Verified Person" not in frozen_manifest_json(first)
     assert "ABC0000001" not in frozen_manifest_json(first)
+
+
+def test_freeze_rejects_processing_engine_mismatch() -> None:
+    report = _report()
+    selection = select_pipeline_candidate(report, _policy())
+    with pytest.raises(ValidationError):
+        freeze_selected_pipeline(
+            report,
+            selection,
+            PipelineVersions(
+                pipeline_version="2.7.0",
+                preprocessing_version="1.3.0",
+                parser_version="1.1.0",
+                ocr_engine="wrong-engine",
+                ocr_engine_version="synthetic-test",
+            ),
+            approved_by=UUID("00000000-0000-0000-0000-000000000002"),
+            approved_at=datetime(2026, 9, 8, tzinfo=timezone.utc),
+            decision_reason="Synthetic test approval only",
+        )
+
+
+def test_freeze_recomputes_and_rejects_a_tampered_selection() -> None:
+    report = _report()
+    selection = select_pipeline_candidate(report, _policy())
+    other_id = next(
+        item.configuration.configuration_id
+        for item in report.configurations
+        if item.configuration.configuration_id != selection.selected_configuration_id
+    )
+    tampered = selection.model_copy(update={"selected_configuration_id": other_id})
+    with pytest.raises(PipelineSelectionBlockedError):
+        freeze_selected_pipeline(
+            report,
+            tampered,
+            PipelineVersions(
+                pipeline_version="2.7.0",
+                preprocessing_version="1.3.0",
+                parser_version="1.1.0",
+                ocr_engine=_engine_for(report, other_id),
+                ocr_engine_version="synthetic-test",
+            ),
+            approved_by=UUID("00000000-0000-0000-0000-000000000002"),
+            approved_at=datetime(2026, 9, 8, tzinfo=timezone.utc),
+            decision_reason="Synthetic test approval only",
+        )
 

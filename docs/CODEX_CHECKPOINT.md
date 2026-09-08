@@ -34,6 +34,10 @@ GOLD records and Phase 2G contains no real measured candidates.
   timezone-aware approval time, and decision reason.
 - Added deterministic manifest JSON and SHA-256 generation containing no voter
   values.
+- Recomputes the selection from the source report and policy during freeze so a
+  fabricated/tampered eligibility result cannot be persisted.
+- Requires the frozen processing engine and engine version to match the exact
+  selected configuration, and rejects blank approval reasons.
 - Manifest creation does not persist or activate a pipeline implicitly.
 - Added `benchmark.pipeline_selection_gate_v1`; service version is `0.8.0` and
   pipeline version is `2.7.0`.
@@ -63,15 +67,16 @@ GOLD records and Phase 2G contains no real measured candidates.
 
 ## Tests
 
-- Focused Phase 2G/2H comparison, selection, and health tests: PASS — 28 passed.
-- Complete extraction-service regression: PASS — 103 passed, 2 host-only
+- Focused Phase 2G/2H comparison, selection, and health tests: PASS — 30 passed.
+- Complete extraction-service regression: PASS — 105 passed, 2 host-only
   Tesseract runtime skips, 3 upstream/cache warnings.
 - Python compile check for `app` and `tests`: PASS.
 - Covered empty/incomplete benchmark blocking, required field gates, EPIC-first
   safety, per-language Telugu protection, no-eligible-candidate behavior,
   runtime limits, exact config/version/metrics/audit capture, report-tamper
-  rejection, timezone enforcement, deterministic serialization/checksums, and
-  absence of voter values in manifests.
+  rejection, selection recomputation, engine/version consistency, timezone
+  enforcement, deterministic serialization/checksums, and absence of voter
+  values in manifests.
 - Reproduced one synthetic test failure caused by assuming configuration list
   order; fixed the fixture to select the failing candidate by stable ID, then
   reran all focused and full regression tests successfully.

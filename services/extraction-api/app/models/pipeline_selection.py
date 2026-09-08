@@ -97,9 +97,20 @@ class FrozenPipelineManifest(StrictModel):
             raise ValueError("approved_at must include a timezone")
         return value
 
+    @field_validator("decision_reason")
+    @classmethod
+    def validate_decision_reason(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("decision_reason cannot contain only whitespace")
+        return value
+
     @model_validator(mode="after")
     def validate_selected_metrics(self) -> "FrozenPipelineManifest":
         if self.selected_metrics.configuration != self.selected_configuration:
             raise ValueError("frozen metrics must belong to the selected configuration")
+        if self.processing_versions.ocr_engine != self.selected_configuration.ocr_engine.value:
+            raise ValueError("processing OCR engine must match the selected configuration")
+        if self.processing_versions.ocr_engine_version != self.selected_configuration.ocr_engine_version:
+            raise ValueError("processing OCR engine version must match the selected configuration")
         return self
 
