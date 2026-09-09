@@ -196,6 +196,13 @@ they must not be inferred from card position or neighboring voters.
 
 ## Known Limitations / Blockers
 
+- Phase 4B is pushed to GitHub at commit
+  `5d6294c73ac5d0efee166651ad874f4aef48d3cd`. Two authorized Netlify upload
+  attempts on 2026-09-10 reached the upload service but ended with Netlify
+  `500 Internal Server Error`; no new deploy was registered. Production remains
+  on ready deploy `6a9ff223ff4ba4000898dbdd` and therefore does not yet include
+  Phase 4B. Retry deployment from the linked Netlify project; do not rebuild or
+  recommit Phase 4B.
 - The backend repository, live RPC, and page worker are ready, but the worker
   has not run against a real voter page in an OCR-capable private environment.
 - Three real pages were segmented without retaining crops, but no real card OCR
