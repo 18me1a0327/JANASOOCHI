@@ -28,6 +28,11 @@ async def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
             "benchmark.ground_truth_import_v1",
             "benchmark.ocr_comparison_v1",
             "benchmark.pipeline_selection_gate_v1",
+            "ingestion.source_layers_v1",
+            "reconciliation.en_te_part_serial_v1",
+            "quality.completeness_conflicts_v1",
+            "verification.golden_revision_gate_v1",
+            "persistence.atomic_page_rpc_v1",
         ],
     )
 

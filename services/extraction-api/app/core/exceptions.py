@@ -182,6 +182,31 @@ class InvalidEpicError(ExtractionError):
     default_message = "The extracted EPIC value is invalid."
 
 
+class SourceRecordValidationError(ExtractionError):
+    code = "source_record_validation_error"
+    default_message = "The extracted voter-card data failed source-record validation."
+    retryable = False
+
+
+class ReconciliationError(ExtractionError):
+    code = "reconciliation_error"
+    default_message = "Unable to reconcile the source-language records."
+    retryable = False
+
+
+class DatabasePersistenceError(ExtractionError):
+    code = "database_persistence_error"
+    default_message = "Database temporarily unavailable."
+    status_code = 503
+    retryable = True
+
+
+class PersistenceConfigurationError(DatabasePersistenceError):
+    code = "persistence_configuration_error"
+    default_message = "The extraction persistence service is not configured."
+    retryable = False
+
+
 class JobNotFoundError(ExtractionError):
     code = "job_not_found"
     default_message = "Processing job not found."

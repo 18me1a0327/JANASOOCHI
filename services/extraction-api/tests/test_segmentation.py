@@ -5,7 +5,12 @@ import pytest
 from app.core.exceptions import InvalidCardGeometryError, UnsupportedPageLayoutError
 from app.models.segmentation import LayoutType
 from app.vision.debug import render_segmentation_overlay
-from app.vision.segmentation import segment_page, segment_pages, validate_grid_geometry
+from app.vision.segmentation import (
+    _consistent_boundary_sequence,
+    segment_page,
+    segment_pages,
+    validate_grid_geometry,
+)
 from tests.segmentation_fixtures import (
     PAGE_HEIGHT,
     PAGE_WIDTH,
@@ -98,6 +103,15 @@ def test_segmentation_is_deterministic() -> None:
     assert segment_page(page).model_dump() == segment_page(page).model_dump()
 
 
+def test_periodic_outer_boundaries_ignore_repeating_internal_card_lines() -> None:
+    outer = list(range(100, 1101, 100))
+    internal = [value + 20 for value in outer[:-1]]
+
+    selected = _consistent_boundary_sequence(sorted([*outer, *internal]), 1300)
+
+    assert selected == outer
+
+
 def test_page_failure_is_isolated_from_other_pages() -> None:
     batch = segment_pages(
         [
@@ -121,3 +135,4 @@ def test_debug_overlay_is_an_in_memory_png() -> None:
 
     assert overlay.startswith(b"\x89PNG\r\n\x1a\n")
     assert len(overlay) > len(page.png_bytes)
+

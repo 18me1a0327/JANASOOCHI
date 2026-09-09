@@ -1,7 +1,8 @@
 # JANASOOCHI Extraction API
 
-Phase 2 foundation for reliable server-side electoral-roll extraction. This
-service validates and fingerprints PDFs, renders one physical page at a time,
+Phase 2 extraction and Phase 3 ingestion foundation for reliable server-side
+electoral-roll processing. This service validates and fingerprints PDFs,
+renders one physical page at a time,
 exposes typed processing-job contracts, and deterministically segments visible
 three-column voter grids into up to 30 ordered card regions. Validated English
 and Telugu cards can be split into typed field crops for the eight required
@@ -125,6 +126,33 @@ cannot be hidden by an overall average. See `docs/PIPELINE_SELECTION.md`.
 Because the real Phase 2G benchmark is still unavailable, no OCR engine is
 selected, no populated freeze manifest exists, and production configuration is
 unchanged.
+
+## Revision-aware source ingestion and reconciliation
+
+Phase 3A adds strict English/Telugu source-record candidates that keep raw OCR,
+deterministically normalized values, original card text, document/page/card
+provenance, bounding boxes, field confidence, engine metadata, and processing
+versions separate. Serial, EPIC, and age checks never guess a replacement.
+Invalid or missing serials remain unlinked and are marked for Review.
+
+The Supabase mapper targets the existing `voter_records` and
+`page_processing` schema, maps confidence onto the database's 0–100 scale, and
+never sets a logical-voter link or `verified` status. A malformed card is
+isolated without discarding valid cards from the same page.
+
+EN↔TE reconciliation uses Part + Serial as the within-revision identity key,
+then checks EPIC, house number, age, and gender. Names are deliberately not
+compared literally across scripts. Structured conflicts and duplicate language
+sources block automatic linking; absence of a source edition remains explicit.
+Completeness reports expected/distinct/missing/duplicate/unexpected serials and
+suspicious EPIC reuse without creating voter data. See `docs/PHASE3_INGESTION.md`.
+
+Phase 3B adds a backend-only Supabase repository and transactional
+`persist_extracted_page_v1` RPC. One call checkpoints the physical page,
+inserts no more than 30 source records, creates their Review issues, and writes
+an audit event. Repeated identical record IDs are idempotent; a retry that would
+change preserved source evidence is rejected. Migration 014 restricts execution
+to the backend service role, and no secret key is sent to the browser.
 
 ## Local development
 

@@ -87,7 +87,7 @@ def _longest_dark_run(image: _GrayImage, y: int, x1: int, x2: int) -> int:
 
 def _horizontal_line_centres(image: _GrayImage) -> list[int]:
     x_margin = max(1, round(image.width * 0.03))
-    y_start = max(1, round(image.height * 0.04))
+    y_start = max(1, round(image.height * 0.01))
     y_end = min(image.height - 1, round(image.height * 0.98))
     minimum_run = max(20, round(image.width * 0.18))
     rows = [
@@ -99,22 +99,39 @@ def _horizontal_line_centres(image: _GrayImage) -> list[int]:
 
 
 def _consistent_boundary_sequence(lines: list[int], page_height: int) -> list[int]:
-    """Return the longest regularly spaced boundary sequence on the page."""
+    """Return the longest periodic boundary subset, ignoring internal card lines."""
 
     best: list[int] = []
     minimum_gap = max(12, round(page_height * 0.035))
     maximum_gap = round(page_height * 0.16)
-    for start in range(len(lines)):
-        for stop in range(start + 2, len(lines) + 1):
-            sequence = lines[start:stop]
-            gaps = [b - a for a, b in zip(sequence, sequence[1:])]
+    for start_index, start in enumerate(lines):
+        for second_index in range(start_index + 1, len(lines)):
+            gap = lines[second_index] - start
+            if not minimum_gap <= gap <= maximum_gap:
+                continue
+            tolerance = max(4, gap * 0.12)
+            sequence = [start, lines[second_index]]
+            cursor = second_index + 1
+            while len(sequence) < _MAX_ROWS + 1:
+                target = sequence[-1] + gap
+                eligible = [
+                    (abs(lines[index] - target), index)
+                    for index in range(cursor, len(lines))
+                    if abs(lines[index] - target) <= tolerance
+                ]
+                if not eligible:
+                    break
+                _, selected_index = min(eligible)
+                sequence.append(lines[selected_index])
+                cursor = selected_index + 1
+
+            gaps = [right - left for left, right in zip(sequence, sequence[1:])]
             typical_gap = median(gaps)
-            tolerance = max(4, typical_gap * 0.20)
-            if not minimum_gap <= typical_gap <= maximum_gap:
+            if max(abs(candidate - typical_gap) for candidate in gaps) > tolerance:
                 continue
-            if max(abs(gap - typical_gap) for gap in gaps) > tolerance:
-                continue
-            if len(sequence) > len(best):
+            if len(sequence) > len(best) or (
+                len(sequence) == len(best) and sequence and sequence[0] < best[0]
+            ):
                 best = sequence
     return best
 
@@ -311,3 +328,4 @@ def segment_pages(pages: list[RenderedPage]) -> SegmentationBatchResult:
                 )
             )
     return SegmentationBatchResult(results=results, failures=failures)
+

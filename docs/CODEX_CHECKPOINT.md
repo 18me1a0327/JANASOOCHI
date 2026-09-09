@@ -2,107 +2,157 @@
 
 ## Current Phase
 
-Phase 2H — Select and Freeze Winning Extraction Pipeline (PARTIAL)
+Phase 3 — Real Electoral Roll Ingestion (PARTIAL)
 
 ## Status
 
-PARTIAL. The evidence gate, deterministic selection contract, and auditable
-freeze-manifest framework are complete and tested. No OCR engine was selected,
-frozen, or activated because Phase 2F contains zero authorized human-verified
-GOLD records and Phase 2G contains no real measured candidates.
+Phase 3A/3B source-ingestion, reconciliation, completeness/conflict, atomic
+persistence, and Golden Revision gate contracts are complete and tested. Real
+production data is not yet eligible for VERIFIED or GOLDEN status. No voter
+value was fabricated, overwritten, auto-corrected, or promoted by this sprint.
+
+## Phase 2 Boundary
+
+The Phase 2 engineering pipeline is complete. The earlier evidence caveat still
+applies: the repository contains no populated authorized human-verified GOLD
+benchmark and no real Phase 2G winner/freeze manifest. No accuracy percentage
+or production OCR winner may be claimed until that private evidence exists.
+Representative PDF inspection also found and fixed one real-grid segmentation
+defect that the synthetic fixtures had not exposed.
 
 ## Completed
 
-- Added a strict `PipelineSelectionPolicy` requiring caller-supplied quality
-  limits rather than hidden or fabricated accuracy thresholds.
-- Requires Parts 227–230, English and Telugu, a verified GOLD checksum,
-  configurable minimum GOLD card/configuration counts, exact-accuracy gates for
-  all eight fields, CER/WER gates for names, extraction-failure and empty-output
-  limits, and an optional runtime-per-card limit.
-- Applies field metrics overall and independently to English and Telugu so an
-  overall average cannot hide weak Telugu or a critical EPIC/Serial result.
-- Validates that every measured configuration appears exactly once in the
-  Phase 2G ranking.
-- Selects the first ranked candidate that passes every explicit gate; blocks
-  safely when evidence is incomplete or no candidate qualifies.
-- Added candidate eligibility and privacy-safe rejection-reason contracts.
-- Added deterministic comparison-report hashing so a selection cannot be
-  reused with a different or modified report.
-- Added an auditable `FrozenPipelineManifest` containing the exact engine,
-  engine version, preprocessing/retry configuration, metrics snapshot, quality
-  policy, GOLD/report checksums, processing versions, approver UUID,
-  timezone-aware approval time, and decision reason.
-- Added deterministic manifest JSON and SHA-256 generation containing no voter
-  values.
-- Recomputes the selection from the source report and policy during freeze so a
-  fabricated/tampered eligibility result cannot be persisted.
-- Requires the frozen processing engine and engine version to match the exact
-  selected configuration, and rejects blank approval reasons.
-- Manifest creation does not persist or activate a pipeline implicitly.
-- Added `benchmark.pipeline_selection_gate_v1`; service version is `0.8.0` and
-  pipeline version is `2.7.0`.
-- Added focused documentation and tests.
-- Did not change Auth, roles, Search, Review, Administration, logo, PWA,
-  deployment, Supabase schema, RLS, or production OCR configuration.
+- Added strict EN/TE `SourceRecordCandidate` contracts preserving SOURCE,
+  RAW, NORMALIZED, source-document/revision, physical/printed page, card index,
+  bbox, exact card text, field confidence, OCR engine, and processing versions.
+- Phase 3 ingestion explicitly blocks Urdu until its verified extraction path
+  exists; it never synthesizes an Urdu representation.
+- Added deterministic serial validation against the current revision totals.
+  Missing/out-of-range serials remain NULL/unlinked and become Critical review
+  candidates; card order is never used as voter serial.
+- Added EPIC-format and plausible-age checks that preserve raw values and do
+  not invent replacements.
+- Added per-card source-record failure isolation so one malformed card does not
+  discard valid cards from the same physical page.
+- Added Supabase mappings for the existing `voter_records` and resumable
+  `page_processing` tables. Confidence is converted from 0–1 to 0–100. The
+  mapper never supplies `logical_voter_id`, `verified_by`, `verified_at`, or a
+  `verified` status.
+- Added EN↔TE reconciliation by Part + Serial with EPIC, house, age, and gender
+  corroboration. Names are not compared literally across scripts.
+- Structured conflicts, missing language sources, and duplicate same-language
+  sources remain explicit and are not safe for automatic linking.
+- Added Part/language completeness checks for missing, duplicate, unexpected,
+  and invalid serials plus suspicious same-language EPIC reuse.
+- Added a strict Golden Revision gate requiring all 3,454 expected slots exactly
+  once, both EN/TE sources, both sources verified, reconciliation complete, and
+  zero open Critical issues.
+- Added stable document/page/card source IDs for idempotent persistence retries.
+- Added source-derived Review row mapping without automatic corrections or
+  verification.
+- Added and applied migrations 013/014. The transactional
+  `persist_extracted_page_v1` RPC checkpoints one page, caps records at 30,
+  inserts source rows and Review rows, records an audit event, serializes
+  concurrent retries, and rejects attempts to overwrite source evidence.
+- Restricted the privileged RPC to backend `service_role` only. The Supabase
+  security advisor no longer flags it as executable by signed-in users.
+- Added and applied migration 015. A `page_processing` integrity trigger now
+  rejects pages outside their document, mismatched processing runs, more than
+  30 detected cards, extracted counts above detected counts, and review counts
+  above extracted counts before any row is written.
+- Added a backend Supabase repository supporting current `sb_secret_...` API-key
+  headers and legacy service-role JWT compatibility; secrets stay server-only.
+- Tested real page 7 geometry from 227 EN, 228 TE, and 229 TE. A repeating
+  internal-line bug was reproduced and fixed by periodic outer-boundary
+  selection. Results were 30 full, 14 valid partial, and 30 full cards.
+- Added Phase 3 documentation and health capabilities; extraction service is
+  `0.10.0`, pipeline `3.1.0`, parser `2.0.0`.
+- Fixed the root lint failure by excluding locked Python cache/virtualenv paths
+  from the JavaScript ESLint scan.
+- No live voter row was inserted/updated, no record was auto-verified, and no UI
+  redesign or deployment change was made.
 
-## Selection / Freeze Result
+## Live Aggregate Assessment (2026-09-09)
 
-- GOLD cards: 0
-- English cards: 0
-- Telugu cards: 0
-- Parts represented: none
-- Real measured candidates: 0
-- Selected configuration: none
-- Frozen manifest: none
-- Production OCR engine: unset
-- Real OCR accuracy measured: no
+- Supported EN/TE documents: 8
+- Source rows: 6,727
+- Expected active logical slots: 3,454
+- Quarantined/inactive legacy logical rows: 721
+- Source rows currently linked to a logical slot: 5,142
+- Verified source rows: 72
+- Verified logical slots: 0
+- Open Review issues: 4,283 (1,529 Critical; 2,754 Informational)
+- Resolved Review issues: 75
 
-## Artifacts
+Distinct expected serial coverage observed:
 
-- `services/extraction-api/app/models/pipeline_selection.py`
-- `services/extraction-api/app/benchmark/selection.py`
-- `services/extraction-api/tests/test_pipeline_selection.py`
-- `services/extraction-api/docs/PIPELINE_SELECTION.md`
-- No populated freeze manifest was generated or committed.
+- Part 227 EN: 301 / 1,014; TE: 932 / 1,014
+- Part 228 EN: 973 / 973; TE: 80 / 973
+- Part 229 EN: 888 / 888; TE: 122 / 888
+- Part 230 EN: 579 / 579; TE: 547 / 579
+
+These are aggregate integrity measurements, not OCR accuracy. The incomplete
+serial coverage is the immediate ingestion blocker. Invalid/missing source
+serials must be re-extracted or human-reviewed from their own source pages;
+they must not be inferred from card position or neighboring voters.
 
 ## Tests
 
-- Focused Phase 2G/2H comparison, selection, and health tests: PASS — 30 passed.
-- Complete extraction-service regression: PASS — 105 passed, 2 host-only
+- Focused Phase 3/segmentation/migration tests: PASS — 43 passed.
+- Complete extraction-service regression: PASS — 136 passed, 2 host-only
   Tesseract runtime skips, 3 upstream/cache warnings.
-- Python compile check for `app` and `tests`: PASS.
-- Covered empty/incomplete benchmark blocking, required field gates, EPIC-first
-  safety, per-language Telugu protection, no-eligible-candidate behavior,
-  runtime limits, exact config/version/metrics/audit capture, report-tamper
-  rejection, selection recomputation, engine/version consistency, timezone
-  enforcement, deterministic serialization/checksums, and absence of voter
-  values in manifests.
-- Reproduced one synthetic test failure caused by assuming configuration list
-  order; fixed the fixture to select the failing candidate by stable ID, then
-  reran all focused and full regression tests successfully.
+- Python compile check: PASS.
+- Web unit tests: PASS — 39 passed, 1 environment-gated skip.
+- Web TypeScript: PASS.
+- Web lint: PASS after reproducing and fixing locked `.pytest_cache` traversal.
+- Web production build: PASS; all application routes generated.
 
-## Known Limitations / Blocking Evidence
+## Artifacts
 
-- No authorized, manually verified English/Telugu GOLD rows are available.
-- Tesseract, PaddleOCR, preprocessing variants, and targeted retry have not
-  been scored on the same real GOLD cases.
-- No real Phase 2G comparison JSON exists, so no evidence-based winner can be
-  selected or frozen.
-- A production policy still needs explicit, authorized quality thresholds.
-- Phase 2H must remain PARTIAL until the private Phase 2F/2G evidence passes
-  these gates and an authorized approver records the decision.
-- Urdu remains outside the benchmark/freeze decision pending valid source files
-  and implemented processing support.
-- FastAPI/Starlette emits two upstream test-client deprecation warnings; pytest
-  cannot write its locked local cache. These do not affect passing tests.
+- `services/extraction-api/app/models/ingestion.py`
+- `services/extraction-api/app/models/reconciliation.py`
+- `services/extraction-api/app/models/verification.py`
+- `services/extraction-api/app/ingestion/source_records.py`
+- `services/extraction-api/app/ingestion/reconciliation.py`
+- `services/extraction-api/app/ingestion/quality.py`
+- `services/extraction-api/app/ingestion/verification.py`
+- `services/extraction-api/app/db/supabase_contracts.py`
+- `services/extraction-api/app/db/ingestion.py`
+- `services/extraction-api/docs/PHASE3_INGESTION.md`
+- `supabase/migrations/013_phase3_atomic_page_ingestion.sql`
+- `supabase/migrations/014_phase3_persistence_security.sql`
+- `supabase/migrations/015_page_processing_integrity.sql`
+- focused tests in `services/extraction-api/tests/`
+
+## Known Limitations / Blockers
+
+- The backend repository and live RPC are ready, but the job worker has not yet
+  orchestrated render → segment → fields → OCR → atomic persist end-to-end.
+- Three real pages were segmented without retaining crops, but no real card OCR
+  or source-record persistence was run.
+- Tesseract is not installed on this Windows host and Docker is unavailable;
+  the production worker image includes EN/TE Tesseract but is not running here.
+- Serial extraction coverage is severely incomplete for 227 EN, 228 TE, and
+  229 TE; 227 TE and 230 TE also have gaps.
+- No logical voter is human-verified, so Golden Revision is correctly blocked.
+- The real GOLD benchmark/winning OCR freeze evidence remains absent.
+- Phase 4 analytics/visualization expansion has not started because Phase 3
+  source integrity is not complete.
+
+## Do Not Rebuild
+
+- Auth, role controls, Search, Documents, Review, Data Quality,
+  Administration, PWA, source viewer, RLS, the 3,454 expected-slot schema, and
+  all Phase 2 extraction modules.
 
 ## Next Exact Task
 
-Phase 2F/2G Evidence Run — First Real Measured Candidate Set
+Phase 3C — Representative OCR + Verified Serial Recovery
 
-Securely supply a private validated human-verified EN/TE GOLD subset spanning
-Parts 227–230. Run Tesseract, PaddleOCR, and targeted-retry configurations on
-the identical cases, generate the private Phase 2G comparison JSON, define the
-authorized production quality policy, and rerun Phase 2H to create the first
-real freeze manifest. Do not commit voter values, PDFs, or card images.
+Run the production EN/TE OCR worker in a controlled Docker/worker environment
+against a small authorized page set from 227 EN, 228 TE, and 229 TE. Compare
+Serial/EPIC/field output to source-page evidence, persist only validated page
+batches through the new RPC, and confirm idempotent retry behavior. Do not
+auto-verify, infer missing serials, expand to a full roll, or start Phase 4 until
+the representative evidence passes.
 
