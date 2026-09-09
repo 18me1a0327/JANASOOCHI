@@ -154,6 +154,13 @@ an audit event. Repeated identical record IDs are idempotent; a retry that would
 change preserved source evidence is rejected. Migration 014 restricts execution
 to the backend service role, and no secret key is sent to the browser.
 
+Phase 3C adds `PageIngestionWorker`, which runs the page pipeline through the
+same atomic contract. It retries page-level render/geometry failures at most
+twice, keeps targeted OCR retry at field scope, reuses the prepared batch for
+database retries, isolates individual card failures, and continues later pages.
+The worker refuses an unset/mismatched OCR selection and never verifies or
+links a logical voter. See `docs/PHASE3_WORKER.md`.
+
 ## Local development
 
 Requires Python 3.12 or newer.

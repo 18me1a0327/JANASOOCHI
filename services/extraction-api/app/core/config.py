@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     max_render_dpi: int = Field(default=400, ge=72, le=600)
     cors_origins: str = "http://localhost:3000"
 
-    pipeline_version: str = "3.1.0"
+    pipeline_version: str = "3.2.0"
     preprocessing_version: str = "1.3.0"
     parser_version: str = "2.0.0"
     ocr_engine: str | None = None

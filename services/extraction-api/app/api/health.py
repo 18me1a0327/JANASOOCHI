@@ -33,6 +33,7 @@ async def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
             "quality.completeness_conflicts_v1",
             "verification.golden_revision_gate_v1",
             "persistence.atomic_page_rpc_v1",
+            "worker.resumable_page_ingestion_v1",
         ],
     )
 
