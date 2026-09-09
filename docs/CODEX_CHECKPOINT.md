@@ -2,16 +2,16 @@
 
 ## Current Phase
 
-Phase 4A — Data Quality Analytics Foundation (PASS)
+Phase 4B — Review Search and Administration Improvements (PASS)
 
 ## Status
 
-Phase 4A is complete and tested on top of the existing Phase 3 ingestion
-foundation. The Data Quality route now exposes deterministic live aggregates,
-filterable quality views, explicit Golden Revision gates, EN/TE representation
-coverage, Review distribution, and missing-field rates. It never counts EN + TE
-source rows as additional logical voters and never displays an unmeasured OCR
-accuracy percentage.
+Phase 4A and Phase 4B are complete and tested on top of the existing Phase 3
+ingestion foundation. Review now uses one server-filtered, enriched, keyset-
+paginated RPC rather than browser-side ID lists or deep offsets. Correction,
+optional source-record verification, one-issue resolution, history, and audit
+creation are atomic. Administration includes current-page email/role filtering
+and recent audited-export visibility.
 
 Phase 3C real EN/TE execution remains evidence-blocked: Tesseract is unavailable
 on this Windows host, Docker is unavailable, and no authorized human-verified
@@ -34,6 +34,29 @@ these conditions; it does not bypass them.
   until calculated from authorized human-verified GOLD records.
 - No database migration, authentication, RLS, source data, or production
   extraction contract changed.
+
+## Phase 4B Completed
+
+- Added server-side Review search across issue text, name, relation, house,
+  EPIC, serial, Part and filename, combined with status, severity, category,
+  Part and source-language filters.
+- Replaced Review offset navigation with stable `(created_at, id)` keyset
+  cursors. One page returns at most 100 fully enriched rows.
+- Added active-document scoping so superseded PDF issues do not contaminate the
+  current Review queue.
+- Added the atomic `save_review_correction_v1` RPC. It retains source values,
+  appends correction history, requires a reason, updates corrected values,
+  optionally verifies the source record and resolves only the selected issue,
+  and writes an audit row in the same transaction.
+- Both Phase 4B functions are `SECURITY INVOKER`, explicitly deny `anon`, and
+  require the existing administrator role check/RLS.
+- Added Review severity/status UI, source opening, correction reasons, mobile-
+  safe search/filter controls, and English/Telugu/Urdu interface copy.
+- Added Administration email/role filtering for the current page and a recent
+  audited-export table; user creation/editing and self-demotion protection are
+  unchanged.
+- Consolidated browser/server Supabase clients on the current generated schema
+  type file and added the new RPC contracts.
 
 ## Phase 2 Boundary
 
@@ -135,11 +158,16 @@ they must not be inferred from card position or neighboring voters.
 - Complete extraction-service regression: PASS — 145 passed, 2 host-only
   Tesseract runtime skips, 3 upstream/cache warnings.
 - Python compile check: PASS.
-- Web unit tests: PASS — 45 passed, 1 environment-gated skip, including 6
-  focused Phase 4 analytics tests.
+- Web unit tests: PASS — 50 passed, 1 environment-gated skip, including 6
+  Phase 4A analytics tests and 5 Phase 4B Review/Admin helper tests.
 - Web TypeScript: PASS.
 - Web lint: PASS after reproducing and fixing locked `.pytest_cache` traversal.
 - Web production build: PASS; all application routes generated.
+- Live Phase 4B query check: PASS — 5/4,283 open rows returned; the next
+  keyset page returned 5 rows with zero overlap.
+- Live function security check: PASS — both Phase 4B functions are security
+  invoker, `anon` execute is false, and authenticated execute is true subject
+  to the explicit admin check/RLS.
 
 ## Artifacts
 
@@ -159,6 +187,11 @@ they must not be inferred from card position or neighboring voters.
 - `supabase/migrations/013_phase3_atomic_page_ingestion.sql`
 - `supabase/migrations/014_phase3_persistence_security.sql`
 - `supabase/migrations/015_page_processing_integrity.sql`
+- `supabase/migrations/016_phase4b_review_admin.sql`
+- `src/AdvancedReviewPage.tsx`
+- `src/review.ts`
+- `components/admin-console.tsx`
+- `lib/admin/user-filter.ts`
 - focused tests in `services/extraction-api/tests/`
 
 ## Known Limitations / Blockers
@@ -185,10 +218,9 @@ they must not be inferred from card position or neighboring voters.
 
 ## Next Exact Task
 
-Phase 4B — Review Search and Administration Improvements
+Phase 4C — Revision Analytics and Reconciliation Drill-down
 
-Add paginated, server-filtered Review search and narrowly scoped administration
-quality controls without changing source values or weakening roles/RLS. Keep
-the real OCR evidence run as a parallel operational prerequisite for Golden
-Revision; do not invent accuracy or verification while it remains unavailable.
+Add deterministic Part/language/reconciliation drill-downs using existing live
+aggregates and paginated source evidence. Do not claim measured OCR accuracy or
+Golden readiness until the Phase 3 evidence blockers are resolved.
 

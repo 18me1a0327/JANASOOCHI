@@ -6,7 +6,7 @@ import { createWorker, PSM } from 'tesseract.js'
 import { createClient, isSupabaseConfigured } from '../lib/supabase/client'
 import { analyzeOcrLayout, columnizeOcrWords, countRecordLabels, detectLanguage, detectPart, extractGridCodes, gridCardizeOcrWords, languageFromFilename, OCR_REVIEW_THRESHOLD, ocrLanguages, parseRecords, pdfPayloadProblem, UNSUPPORTED } from './core'
 import type { BoundingBox, FieldConfidence, RecordLanguage, Voter } from './types'
-import type { Database } from './database.types'
+import type { Database } from '../supabase/database.types'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
 export const configured = isSupabaseConfigured()
@@ -218,3 +218,4 @@ export async function openSource(storagePath: string, page: number) {
   } catch (error) { target?.close(); throw error }
 }
 export { pdfjs }
+

@@ -16,7 +16,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createClient } from "../lib/supabase/client";
-import type { Json } from "../src/database.types";
+import type { Json } from "../supabase/database.types";
 
 type DocumentInfo = {
   filename: string;
@@ -469,3 +469,4 @@ export function SourcePageViewer({ pdfId }: Readonly<{ pdfId: string }>) {
     </section>
   );
 }
+

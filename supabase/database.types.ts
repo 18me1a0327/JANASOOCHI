@@ -1386,6 +1386,54 @@ export type Database = {
           voter_printed_page_number: number
         }[]
       }
+      get_review_issues_page_v2: {
+        Args: {
+          p_after_created_at?: string
+          p_after_id?: number
+          p_category?: string
+          p_language?: string
+          p_limit?: number
+          p_part?: number
+          p_search?: string
+          p_severity?: string
+          p_status?: string
+        }
+        Returns: {
+          age: number
+          corrected_value: Json
+          epic_number: string
+          field_confidence: Json
+          filename: string
+          gender: string
+          house_number: string
+          issue_created_at: string
+          issue_detail: string
+          issue_id: number
+          issue_severity: string
+          issue_status: string
+          issue_type: string
+          original_text: string
+          page_id: number
+          page_ocr_confidence: number
+          page_pdf_page_number: number
+          page_printed_page_number: number
+          page_status: string
+          part_number: number
+          pdf_id: string
+          relation_name: string
+          relation_type: string
+          serial_number: string
+          source_language: string
+          storage_path: string
+          total_count: number
+          verification_status: Database["public"]["Enums"]["verification_status"]
+          voter_id: string
+          voter_name: string
+          voter_ocr_confidence: number
+          voter_pdf_page_number: number
+          voter_printed_page_number: number
+        }[]
+      }
       get_serial_completeness_page: {
         Args: {
           p_after_cursor?: string
@@ -1417,6 +1465,21 @@ export type Database = {
           p_status?: string
         }
         Returns: string
+      }
+      save_review_correction_v1: {
+        Args: {
+          p_corrected_value: Json
+          p_issue_id: number
+          p_mark_verified?: boolean
+          p_reason?: string
+        }
+        Returns: {
+          corrected_at: string
+          issue_id: number
+          issue_status: string
+          verification_status: Database["public"]["Enums"]["verification_status"]
+          voter_id: string
+        }[]
       }
       search_source_records_page: {
         Args: {

@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-import type { Database } from '../../src/database.types'
+import type { Database } from '../../supabase/database.types'
 
 export async function refreshSession(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -26,3 +26,4 @@ export async function refreshSession(request: NextRequest) {
   await supabase.auth.getUser()
   return response
 }
+

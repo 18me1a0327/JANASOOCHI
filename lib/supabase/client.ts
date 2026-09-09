@@ -2,7 +2,7 @@
 
 import { createBrowserClient } from '@supabase/ssr'
 
-import type { Database } from '../../src/database.types'
+import type { Database } from '../../supabase/database.types'
 
 let browserClient: ReturnType<typeof createBrowserClient<Database>> | undefined
 
@@ -24,3 +24,4 @@ export function isSupabaseConfigured() {
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   )
 }
+

@@ -16,6 +16,7 @@ export interface ReviewPageRow {
   issue_type: string
   issue_detail: string
   issue_status: string
+  issue_severity: 'critical' | 'needs_review' | 'informational'
   issue_created_at: string
   voter_id: string | null
   part_number: number | null
@@ -46,6 +47,11 @@ export interface ReviewPageRow {
   total_count: number
 }
 
+export type ReviewCursor = {
+  createdAt: string
+  issueId: number
+}
+
 export interface ReviewQueryError {
   kind: 'session' | 'permission' | 'query' | 'network' | 'unknown'
   message: string
@@ -63,6 +69,16 @@ export function reviewPageOffset(page: number, pageSize: number) {
   const safePage = Math.max(1, Math.floor(page) || 1)
   const safeSize = [25, 50, 100].includes(pageSize) ? pageSize : 50
   return (safePage - 1) * safeSize
+}
+
+export function normalizeReviewSearch(value: string) {
+  return value.trim().replace(/\s+/g, ' ').slice(0, 120)
+}
+
+export function reviewCursorFromRows(rows: ReviewPageRow[]): ReviewCursor | null {
+  const row = rows.at(-1)
+  if (!row) return null
+  return { createdAt: row.issue_created_at, issueId: row.issue_id }
 }
 
 export function classifyReviewError(error: unknown): ReviewQueryError {
@@ -95,3 +111,4 @@ export function reviewErrorContext(error: unknown, context: Record<string, unkno
     hint: value.hint ?? null,
   }
 }
+
