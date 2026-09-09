@@ -2,16 +2,38 @@
 
 ## Current Phase
 
-Phase 3 — Real Electoral Roll Ingestion (PARTIAL)
+Phase 4A — Data Quality Analytics Foundation (PASS)
 
 ## Status
 
-Phase 3A/3B source-ingestion, reconciliation, completeness/conflict, atomic
-persistence, and Golden Revision gate contracts are complete and tested. Phase
-3C page-worker orchestration is also complete, but its real EN/TE evidence run
-is blocked by the unavailable OCR runtime and absent verified GOLD evidence.
-Production data is not yet eligible for VERIFIED or GOLDEN status. No voter
-value was fabricated, overwritten, auto-corrected, or promoted by this sprint.
+Phase 4A is complete and tested on top of the existing Phase 3 ingestion
+foundation. The Data Quality route now exposes deterministic live aggregates,
+filterable quality views, explicit Golden Revision gates, EN/TE representation
+coverage, Review distribution, and missing-field rates. It never counts EN + TE
+source rows as additional logical voters and never displays an unmeasured OCR
+accuracy percentage.
+
+Phase 3C real EN/TE execution remains evidence-blocked: Tesseract is unavailable
+on this Windows host, Docker is unavailable, and no authorized human-verified
+GOLD sample exists. Golden Revision remains correctly blocked by incomplete
+source-language coverage, zero verified logical voters, unresolved Review and
+reconciliation gates, and incomplete/failed source processing. Phase 4 reports
+these conditions; it does not bypass them.
+
+## Phase 4A Completed
+
+- Added pure typed analytics for logical-voter totals, EN/TE source coverage,
+  Review severity distribution, missing-field rates, and Golden gates.
+- Golden gates cover logical structure, both source languages, missing,
+  duplicate and unexpected serials, suspicious EPICs, failed/partial pages,
+  reconciliation conflicts, Critical issues, and verification completeness.
+- Added Data Quality view filters for Overview, Language Coverage, Review
+  Backlog, and Missing Fields while retaining Part and source-language filters.
+- Added localized English, Telugu and Urdu analytics copy and blocker labels.
+- Added an explicit evidence panel stating that real OCR accuracy is unavailable
+  until calculated from authorized human-verified GOLD records.
+- No database migration, authentication, RLS, source data, or production
+  extraction contract changed.
 
 ## Phase 2 Boundary
 
@@ -113,7 +135,8 @@ they must not be inferred from card position or neighboring voters.
 - Complete extraction-service regression: PASS — 145 passed, 2 host-only
   Tesseract runtime skips, 3 upstream/cache warnings.
 - Python compile check: PASS.
-- Web unit tests: PASS — 39 passed, 1 environment-gated skip.
+- Web unit tests: PASS — 45 passed, 1 environment-gated skip, including 6
+  focused Phase 4 analytics tests.
 - Web TypeScript: PASS.
 - Web lint: PASS after reproducing and fixing locked `.pytest_cache` traversal.
 - Web production build: PASS; all application routes generated.
@@ -150,8 +173,9 @@ they must not be inferred from card position or neighboring voters.
   229 TE; 227 TE and 230 TE also have gaps.
 - No logical voter is human-verified, so Golden Revision is correctly blocked.
 - The real GOLD benchmark/winning OCR freeze evidence remains absent.
-- Phase 4 analytics/visualization expansion has not started because Phase 3
-  source integrity is not complete.
+- Phase 4A can report trustworthy database aggregates now, but measured OCR
+  accuracy, verified/golden counts, and final reconciliation remain unavailable
+  until the Phase 3 evidence blockers above are resolved.
 
 ## Do Not Rebuild
 
@@ -161,12 +185,10 @@ they must not be inferred from card position or neighboring voters.
 
 ## Next Exact Task
 
-Phase 3C Evidence Run — Representative OCR + Verified Serial Recovery
+Phase 4B — Review Search and Administration Improvements
 
-Run the tested EN/TE OCR worker in a controlled Docker/worker environment
-against a small authorized page set from 227 EN, 228 TE, and 229 TE. Compare
-Serial/EPIC/field output to source-page evidence, persist only validated page
-batches through the new RPC, and confirm idempotent retry behavior. Do not
-auto-verify, infer missing serials, expand to a full roll, or start Phase 4 until
-the representative evidence passes.
+Add paginated, server-filtered Review search and narrowly scoped administration
+quality controls without changing source values or weakening roles/RLS. Keep
+the real OCR evidence run as a parallel operational prerequisite for Golden
+Revision; do not invent accuracy or verification while it remains unavailable.
 

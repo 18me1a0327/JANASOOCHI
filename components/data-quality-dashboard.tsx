@@ -1,63 +1,41 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AlertOctagon, CheckCircle2, CircleDashed, Filter, LoaderCircle, RefreshCw } from 'lucide-react'
+import { AlertOctagon, BarChart3, CheckCircle2, CircleDashed, Filter, LoaderCircle, RefreshCw, ShieldAlert } from 'lucide-react'
 
+import { buildQualityAnalytics, count, type CountValue, type PartLanguageQualityInput, type QualitySummaryInput } from '../lib/data-quality/metrics'
 import { createClient } from '../lib/supabase/client'
 import { useLanguage } from './language-provider'
 import { MetricCard, Panel } from './ui-shell'
 
-type Summary = {
-  expected_slots: number | string
-  active_logical_voters: number | string
-  extracted_source_records: number | string
-  linked_source_records: number | string
-  missing_serials: number | string
-  duplicate_serial_groups: number | string
-  unexpected_serials: number | string
-  duplicate_epic_groups: number | string
-  expected_voter_cards: number | string
-  extracted_voter_cards: number | string
-  failed_pages: number | string
-  partial_pages: number | string
-  null_name_records: number | string
-  null_relation_records: number | string
-  null_house_records: number | string
-  null_age_records: number | string
-  null_epic_records: number | string
-  reconciliation_conflicts: number | string
-  critical_issues: number | string
-  needs_review_issues: number | string
-  informational_issues: number | string
-  verified_logical_voters: number | string
-  unverified_logical_voters: number | string
-}
-
-type PartQuality = {
-  part_number: number
-  source_language: 'en' | 'te' | 'ur'
-  expected_slots: number | string
-  source_record_count: number | string
-  linked_slot_count: number | string
-  missing_slot_count: number | string
-  unlinked_source_count: number | string
-}
+type Summary = QualitySummaryInput
+type PartQuality = PartLanguageQualityInput
+type QualityView = 'overview' | 'coverage' | 'issues' | 'fields'
 
 type RpcResult = { data: unknown; error: { message: string } | null }
 const PART_TOTALS: Record<number, number> = { 227: 1014, 228: 973, 229: 888, 230: 579 }
 
+const BLOCKER_LABELS = {
+  en: { logical_structure_incomplete: 'Logical-voter structure incomplete', en_source_incomplete: 'English source coverage incomplete', te_source_incomplete: 'Telugu source coverage incomplete', missing_serials: 'Missing serials', duplicate_serials: 'Duplicate serials', unexpected_serials: 'Unexpected serials', duplicate_epics: 'Duplicate or suspicious EPICs', failed_pages: 'Failed pages', partial_pages: 'Partially extracted pages', reconciliation_conflicts: 'Reconciliation conflicts', critical_issues: 'Open critical issues', verification_incomplete: 'Human verification incomplete' },
+  te: { logical_structure_incomplete: 'తార్కిక ఓటర్ల నిర్మాణం అసంపూర్ణం', en_source_incomplete: 'ఇంగ్లీష్ మూల కవరేజ్ అసంపూర్ణం', te_source_incomplete: 'తెలుగు మూల కవరేజ్ అసంపూర్ణం', missing_serials: 'లేని క్రమ సంఖ్యలు', duplicate_serials: 'నకిలీ క్రమ సంఖ్యలు', unexpected_serials: 'అనుకోని క్రమ సంఖ్యలు', duplicate_epics: 'నకిలీ లేదా అనుమానాస్పద EPICలు', failed_pages: 'విఫలమైన పేజీలు', partial_pages: 'పాక్షికంగా వెలికితీసిన పేజీలు', reconciliation_conflicts: 'సమన్వయ విభేదాలు', critical_issues: 'తెరిచి ఉన్న కీలక సమస్యలు', verification_incomplete: 'మానవ ధృవీకరణ అసంపూర్ణం' },
+  ur: { logical_structure_incomplete: 'منطقی ووٹر ساخت نامکمل', en_source_incomplete: 'انگریزی ماخذ کوریج نامکمل', te_source_incomplete: 'تلگو ماخذ کوریج نامکمل', missing_serials: 'سیریل غائب', duplicate_serials: 'نقل سیریل', unexpected_serials: 'غیر متوقع سیریل', duplicate_epics: 'نقل یا مشتبہ EPIC', failed_pages: 'ناکام صفحات', partial_pages: 'جزوی طور پر اخذ شدہ صفحات', reconciliation_conflicts: 'مصالحتی تضادات', critical_issues: 'کھلے سنگین مسائل', verification_incomplete: 'انسانی تصدیق نامکمل' },
+} as const
+
 const COPY = {
-  en: { unexpected: 'Unexpected serials', partial: 'Partially extracted pages', nullName: 'Missing names', nullRelation: 'Missing relations', nullHouse: 'Missing house numbers', nullAge: 'Missing ages', nullEpic: 'Missing EPICs', linked: 'Linked canonical slots', unlinked: 'Unlinked source rows', cards: 'Cards extracted / detected', reload: 'Reload quality data', unavailable: 'Unable to load data-quality metrics.' },
-  te: { unexpected: 'అనుకోని క్రమ సంఖ్యలు', partial: 'పాక్షికంగా వెలికితీసిన పేజీలు', nullName: 'పేర్లు లేవు', nullRelation: 'బంధాలు లేవు', nullHouse: 'ఇంటి నంబర్లు లేవు', nullAge: 'వయస్సులు లేవు', nullEpic: 'EPICలు లేవు', linked: 'అనుసంధానమైన ప్రామాణిక స్థానాలు', unlinked: 'అనుసంధానం కాని మూల రికార్డులు', cards: 'వెలికితీసిన / గుర్తించిన కార్డులు', reload: 'నాణ్యత డేటాను మళ్లీ లోడ్ చేయండి', unavailable: 'డేటా నాణ్యత గణాంకాలను లోడ్ చేయలేకపోయాం.' },
-  ur: { unexpected: 'غیر متوقع سیریل', partial: 'جزوی طور پر اخذ شدہ صفحات', nullName: 'نام غائب', nullRelation: 'رشتے غائب', nullHouse: 'مکان نمبر غائب', nullAge: 'عمر غائب', nullEpic: 'EPIC غائب', linked: 'منسلک کینونیکل سلاٹس', unlinked: 'غیر منسلک ماخذ قطاریں', cards: 'اخذ شدہ / شناخت شدہ کارڈ', reload: 'معیار ڈیٹا دوبارہ لوڈ کریں', unavailable: 'ڈیٹا معیار میٹرکس لوڈ نہیں ہو سکے۔' },
+  en: { unexpected: 'Unexpected serials', partial: 'Partially extracted pages', nullName: 'Missing names', nullRelation: 'Missing relations', nullHouse: 'Missing house numbers', nullAge: 'Missing ages', nullEpic: 'Missing EPICs', linked: 'Linked canonical slots', unlinked: 'Unlinked source rows', unverified: 'unverified', cards: 'Cards extracted / detected', reload: 'Reload quality data', unavailable: 'Unable to load data-quality metrics.', allViews: 'Overview', coverageView: 'Language coverage', issuesView: 'Review backlog', fieldsView: 'Missing fields', goldenTitle: 'Golden Revision readiness', goldenReady: 'All deterministic release gates are satisfied.', goldenBlocked: 'Release remains blocked by the checks shown below.', blockers: 'open gate(s)', ocrTitle: 'Measured OCR accuracy', ocrUnavailable: 'No real OCR accuracy is displayed because the authorized human-verified GOLD benchmark is not available.', sourceRepresentations: 'Source representations', notExtraVoters: 'English and Telugu rows are linked representations; they do not increase the logical voter total.' },
+  te: { unexpected: 'అనుకోని క్రమ సంఖ్యలు', partial: 'పాక్షికంగా వెలికితీసిన పేజీలు', nullName: 'పేర్లు లేవు', nullRelation: 'బంధాలు లేవు', nullHouse: 'ఇంటి నంబర్లు లేవు', nullAge: 'వయస్సులు లేవు', nullEpic: 'EPICలు లేవు', linked: 'అనుసంధానమైన ప్రామాణిక స్థానాలు', unlinked: 'అనుసంధానం కాని మూల రికార్డులు', unverified: 'ధృవీకరించనివి', cards: 'వెలికితీసిన / గుర్తించిన కార్డులు', reload: 'నాణ్యత డేటాను మళ్లీ లోడ్ చేయండి', unavailable: 'డేటా నాణ్యత గణాంకాలను లోడ్ చేయలేకపోయాం.', allViews: 'సమగ్ర వీక్షణ', coverageView: 'భాషా కవరేజ్', issuesView: 'సమీక్ష పెండింగ్', fieldsView: 'లేని ఫీల్డులు', goldenTitle: 'గోల్డెన్ రివిజన్ సిద్ధత', goldenReady: 'అన్ని నిర్ణీత విడుదల తనిఖీలు పూర్తయ్యాయి.', goldenBlocked: 'క్రింద చూపిన తనిఖీల వల్ల విడుదల ఇంకా నిలిపివేయబడింది.', blockers: 'తెరిచి ఉన్న తనిఖీలు', ocrTitle: 'కొలిచిన OCR ఖచ్చితత్వం', ocrUnavailable: 'అధీకృత మానవ-ధృవీకరించిన GOLD బెంచ్‌మార్క్ లేకపోవడం వల్ల నిజమైన OCR ఖచ్చితత్వం చూపబడదు.', sourceRepresentations: 'మూల భాషా ప్రతినిధ్యాలు', notExtraVoters: 'ఇంగ్లీష్, తెలుగు వరుసలు అనుసంధానమైన ప్రతినిధ్యాలు మాత్రమే; అవి ప్రత్యేక ఓటర్ల సంఖ్యను పెంచవు.' },
+  ur: { unexpected: 'غیر متوقع سیریل', partial: 'جزوی طور پر اخذ شدہ صفحات', nullName: 'نام غائب', nullRelation: 'رشتے غائب', nullHouse: 'مکان نمبر غائب', nullAge: 'عمر غائب', nullEpic: 'EPIC غائب', linked: 'منسلک کینونیکل سلاٹس', unlinked: 'غیر منسلک ماخذ قطاریں', unverified: 'غیر تصدیق شدہ', cards: 'اخذ شدہ / شناخت شدہ کارڈ', reload: 'معیار ڈیٹا دوبارہ لوڈ کریں', unavailable: 'ڈیٹا معیار میٹرکس لوڈ نہیں ہو سکے۔', allViews: 'مجموعی جائزہ', coverageView: 'زبان کوریج', issuesView: 'جائزہ بیک لاگ', fieldsView: 'غائب فیلڈز', goldenTitle: 'گولڈن ریویژن تیاری', goldenReady: 'تمام مقررہ ریلیز جانچ مکمل ہیں۔', goldenBlocked: 'ذیل کی کھلی جانچوں کی وجہ سے ریلیز ابھی مسدود ہے۔', blockers: 'کھلی جانچ', ocrTitle: 'پیمائش شدہ OCR درستگی', ocrUnavailable: 'مجاز انسانی تصدیق شدہ GOLD بینچ مارک نہ ہونے کی وجہ سے حقیقی OCR درستگی نہیں دکھائی جاتی۔', sourceRepresentations: 'ماخذ زبان نمائندگی', notExtraVoters: 'انگریزی اور تلگو قطاریں منسلک نمائندگی ہیں؛ یہ منطقی ووٹرز کی تعداد نہیں بڑھاتیں۔' },
 } as const
 
 export function DataQualityDashboard() {
   const { language, t } = useLanguage()
   const copy = COPY[language]
+  const blockerLabels = BLOCKER_LABELS[language]
   const [part, setPart] = useState('')
   const [sourceLanguage, setSourceLanguage] = useState('all')
+  const [qualityView, setQualityView] = useState<QualityView>('overview')
   const [summary, setSummary] = useState<Summary | null>(null)
+  const [overallSummary, setOverallSummary] = useState<Summary | null>(null)
   const [parts, setParts] = useState<PartQuality[]>([])
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState('')
@@ -67,22 +45,30 @@ export function DataQualityDashboard() {
     setError('')
     try {
       const supabase = createClient()
-      const [summaryResult, partsResult] = await Promise.all([
+      const [summaryResult, overallResult, partsResult] = await Promise.all([
         supabase.rpc('get_data_quality_summary' as never, {
           p_part: part ? Number(part) : null,
           p_language: sourceLanguage === 'all' ? null : sourceLanguage,
         } as never),
+        supabase.rpc('get_data_quality_summary' as never, {
+          p_part: part ? Number(part) : null,
+          p_language: null,
+        } as never),
         supabase.rpc('get_part_language_quality' as never, {} as never),
       ])
       const summaryResponse = summaryResult as unknown as RpcResult
+      const overallResponse = overallResult as unknown as RpcResult
       const partsResponse = partsResult as unknown as RpcResult
       if (summaryResponse.error) throw summaryResponse.error
+      if (overallResponse.error) throw overallResponse.error
       if (partsResponse.error) throw partsResponse.error
       setSummary(((summaryResponse.data ?? []) as Summary[])[0] ?? null)
+      setOverallSummary(((overallResponse.data ?? []) as Summary[])[0] ?? null)
       setParts((partsResponse.data ?? []) as PartQuality[])
     } catch (loadError) {
       console.error('Data-quality query failed', loadError)
       setSummary(null)
+      setOverallSummary(null)
       setParts([])
       setError(copy.unavailable)
     } finally {
@@ -96,27 +82,47 @@ export function DataQualityDashboard() {
     (!part || row.part_number === Number(part)) &&
     (sourceLanguage === 'all' || row.source_language === sourceLanguage),
   ), [part, parts, sourceLanguage])
+  const readinessParts = useMemo(
+    () => parts.filter((row) => !part || row.part_number === Number(part)),
+    [part, parts],
+  )
+  const analytics = useMemo(
+    () => buildQualityAnalytics(overallSummary, readinessParts),
+    [overallSummary, readinessParts],
+  )
+  const scopedAnalytics = useMemo(
+    () => buildQualityAnalytics(summary, shownParts),
+    [shownParts, summary],
+  )
 
-  const number = (value: number | string | undefined) => Number(value ?? 0).toLocaleString('en-IN')
-  const expected = Number(summary?.expected_slots ?? (part ? PART_TOTALS[Number(part)] : 3454))
-  const extracted = Number(summary?.extracted_source_records ?? 0)
-  const verified = Number(summary?.verified_logical_voters ?? 0)
-  const nullTotal = Number(summary?.null_name_records ?? 0) + Number(summary?.null_relation_records ?? 0) + Number(summary?.null_house_records ?? 0) + Number(summary?.null_age_records ?? 0) + Number(summary?.null_epic_records ?? 0)
+  const number = (value: CountValue) => Number(value ?? 0).toLocaleString('en-IN')
+  const expected = Number(overallSummary?.expected_slots ?? (part ? PART_TOTALS[Number(part)] : 3454))
+  const extracted = count(summary?.extracted_source_records)
+  const verified = count(overallSummary?.verified_logical_voters)
+  const nullTotal = scopedAnalytics.missingFieldRates.reduce((total, row) => total + row.value, 0)
+  const showCoverage = qualityView === 'overview' || qualityView === 'coverage'
+  const showIssues = qualityView === 'overview' || qualityView === 'issues'
+  const showFields = qualityView === 'overview' || qualityView === 'fields'
 
   return (
     <>
       <div className="quality-toolbar">
-        <div className="quality-filter"><Filter aria-hidden="true" /><select aria-label={t('part')} value={part} onChange={(event) => setPart(event.target.value)}><option value="">{t('allSupportedParts')}</option><option>227</option><option>228</option><option>229</option><option>230</option></select><select aria-label={t('sourceLanguage')} value={sourceLanguage} onChange={(event) => setSourceLanguage(event.target.value)}><option value="all">{t('allLanguages')}</option><option value="en">{t('englishSource')}</option><option value="te">{t('teluguSource')}</option><option value="ur">{t('urduSource')}</option></select></div>
+        <div className="quality-filter"><Filter aria-hidden="true" /><select aria-label={t('part')} value={part} onChange={(event) => setPart(event.target.value)}><option value="">{t('allSupportedParts')}</option><option>227</option><option>228</option><option>229</option><option>230</option></select><select aria-label={t('sourceLanguage')} value={sourceLanguage} onChange={(event) => setSourceLanguage(event.target.value)}><option value="all">{t('allLanguages')}</option><option value="en">{t('englishSource')}</option><option value="te">{t('teluguSource')}</option><option value="ur">{t('urduSource')}</option></select><select aria-label={t('qualityFilter')} value={qualityView} onChange={(event) => setQualityView(event.target.value as QualityView)}><option value="overview">{copy.allViews}</option><option value="coverage">{copy.coverageView}</option><option value="issues">{copy.issuesView}</option><option value="fields">{copy.fieldsView}</option></select></div>
         <button className="button secondary small" type="button" onClick={() => void load()} disabled={busy}>{busy ? <LoaderCircle className="spin" aria-hidden="true" /> : <RefreshCw aria-hidden="true" />}{copy.reload}</button>
       </div>
       {error && <p className="error-notice" role="alert">{error}</p>}
       <div className="metric-grid">
         <MetricCard label={t('expected')} value={expected.toLocaleString('en-IN')} note={t('expectedSourceCount')} tone="positive" />
         <MetricCard label={t('extracted')} value={busy ? '—' : number(extracted)} note={sourceLanguage === 'all' ? t('allLanguages') : sourceLanguage.toUpperCase()} />
-        <MetricCard label={t('verifiedMetric')} value={busy ? '—' : number(verified)} note={`${number(summary?.unverified_logical_voters)} unverified`} />
+        <MetricCard label={t('verifiedMetric')} value={busy ? '—' : number(verified)} note={`${number(overallSummary?.unverified_logical_voters)} ${copy.unverified}`} />
         <MetricCard label={t('reconciliationConflicts')} value={busy ? '—' : number(summary?.reconciliation_conflicts)} note={copy.unlinked} tone={Number(summary?.reconciliation_conflicts ?? 0) ? 'warning' : 'positive'} />
       </div>
-      <div className="quality-layout">
+      {!busy && <section className={`quality-readiness ${analytics.goldenRevisionBlockers.length ? 'blocked' : 'ready'}`} role="status">
+        {analytics.goldenRevisionBlockers.length ? <ShieldAlert aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
+        <div><h2>{copy.goldenTitle}</h2><p>{analytics.goldenRevisionBlockers.length ? copy.goldenBlocked : copy.goldenReady}</p><strong>{number(analytics.verifiedLogicalVoters)} / {number(analytics.expectedLogicalVoters)} · {analytics.verifiedPercent}%</strong>{!!analytics.goldenRevisionBlockers.length && <ul className="quality-blockers">{analytics.goldenRevisionBlockers.map((blocker) => <li key={blocker}>{blockerLabels[blocker as keyof typeof blockerLabels] ?? blocker.replaceAll('_', ' ')}</li>)}</ul>}</div>
+        {!!analytics.goldenRevisionBlockers.length && <span>{analytics.goldenRevisionBlockers.length} {copy.blockers}</span>}
+      </section>}
+      {showCoverage && <div className="quality-layout">
         <Panel title={t('completenessByPart')} description={t('actualValuesLive')} className="part-completeness">
           <div className="part-total-list">
             {shownParts.map((row) => {
@@ -127,6 +133,13 @@ export function DataQualityDashboard() {
             {!busy && !shownParts.length && <p>{t('awaitingLiveData')}</p>}
           </div>
         </Panel>
+        <Panel title={copy.sourceRepresentations} description={copy.notExtraVoters}>
+          <div className="quality-bars">
+            {analytics.sourceCoverage.map((row) => <QualityBarRow key={row.key} label={row.key.toUpperCase()} value={`${number(row.value)} / ${number(row.total)}`} percent={row.percent} />)}
+          </div>
+        </Panel>
+      </div>}
+      {showIssues && <div className="quality-layout">
         <Panel title={t('dataQualityChecks')} description={t('actualValuesLive')} className="quality-checks">
           <ul>
             <QualityLine label={t('missingSerials')} value={number(summary?.missing_serials)} warning={Number(summary?.missing_serials ?? 0) > 0} />
@@ -138,15 +151,28 @@ export function DataQualityDashboard() {
             <QualityLine label={t('nullRates')} value={number(nullTotal)} warning={nullTotal > 0} />
           </ul>
         </Panel>
-      </div>
-      <div className="quality-detail-grid">
-        <Panel title={t('nullRates')}><ul className="quality-list"><li>{copy.nullName}<b>{number(summary?.null_name_records)}</b></li><li>{copy.nullRelation}<b>{number(summary?.null_relation_records)}</b></li><li>{copy.nullHouse}<b>{number(summary?.null_house_records)}</b></li><li>{copy.nullAge}<b>{number(summary?.null_age_records)}</b></li><li>{copy.nullEpic}<b>{number(summary?.null_epic_records)}</b></li></ul></Panel>
-        <Panel title={t('reviewItems')}><ul className="quality-list"><li>{t('critical')}<b>{number(summary?.critical_issues)}</b></li><li>{t('needsReview')}<b>{number(summary?.needs_review_issues)}</b></li><li>{t('informational')}<b>{number(summary?.informational_issues)}</b></li><li>{copy.cards}<b>{number(summary?.extracted_voter_cards)} / {number(summary?.expected_voter_cards)}</b></li></ul></Panel>
-      </div>
+        <Panel title={t('reviewItems')}>
+          <div className="quality-bars">
+            {scopedAnalytics.issueDistribution.map((row) => <QualityBarRow key={row.key} label={row.key === 'critical' ? t('critical') : row.key === 'needs_review' ? t('needsReview') : t('informational')} value={number(row.value)} percent={row.percent} tone={row.key === 'critical' ? 'danger' : row.key === 'needs_review' ? 'warning' : 'default'} />)}
+          </div>
+          <p className="quality-card-count">{copy.cards}<b>{number(summary?.extracted_voter_cards)} / {number(summary?.expected_voter_cards)}</b></p>
+        </Panel>
+      </div>}
+      {showFields && <div className="quality-detail-grid">
+        <Panel title={t('nullRates')}>
+          <div className="quality-bars">{scopedAnalytics.missingFieldRates.map((row) => <QualityBarRow key={row.key} label={row.key === 'name' ? copy.nullName : row.key === 'relation' ? copy.nullRelation : row.key === 'house' ? copy.nullHouse : row.key === 'age' ? copy.nullAge : copy.nullEpic} value={number(row.value)} percent={row.percent} tone={row.value ? 'warning' : 'default'} />)}</div>
+        </Panel>
+        <Panel title={copy.ocrTitle}><div className="quality-evidence-note"><BarChart3 aria-hidden="true" /><p>{copy.ocrUnavailable}</p></div></Panel>
+      </div>}
     </>
   )
+}
+
+function QualityBarRow({ label, value, percent, tone = 'default' }: { label: string; value: string; percent: number; tone?: 'default' | 'warning' | 'danger' }) {
+  return <div className="quality-bar-row"><span><b>{label}</b><small>{value} · {percent}%</small></span><div className={`reference-bar ${tone}`} aria-label={`${label}: ${percent}%`}><i style={{ width: `${percent}%` }} /></div></div>
 }
 
 function QualityLine({ label, value, warning }: { label: string; value: string; warning: boolean }) {
   return <li>{warning ? <AlertOctagon aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}<span>{label}</span><b>{value}</b>{!warning && <CircleDashed className="visually-hidden" />}</li>
 }
+

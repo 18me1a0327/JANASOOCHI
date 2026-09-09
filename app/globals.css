@@ -177,6 +177,8 @@ h1, h2, h3, p { margin-top: 0; }
 .part-total-list small { color: var(--ink-muted); }
 .reference-bar { height: .7rem; overflow: hidden; border-radius: 999px; background: #e8eef2; }
 .reference-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--green), #45a976); }
+.reference-bar.warning i { background: linear-gradient(90deg, #d88213, var(--saffron)); }
+.reference-bar.danger i { background: linear-gradient(90deg, #a92920, var(--red)); }
 .quality-checks ul, .security-list { list-style: none; margin: 0; padding: .5rem 1.15rem 1rem; }
 .quality-checks li, .security-list li { min-height: 2.9rem; display: flex; align-items: center; gap: .65rem; border-bottom: 1px solid #e9eef2; font-size: .82rem; }
 .quality-checks li:last-child, .security-list li:last-child { border-bottom: 0; }
@@ -242,6 +244,23 @@ h1, h2, h3, p { margin-top: 0; }
 .documents-table td:nth-child(2) { min-width: 18rem; }
 .quality-toolbar, .admin-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
 .quality-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.quality-readiness { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .9rem; margin-bottom: 1rem; padding: 1rem 1.1rem; border: 1px solid #abd7c0; border-radius: 1rem; color: var(--green); background: var(--green-soft); }
+.quality-readiness.blocked { border-color: #efc477; color: #8b5008; background: var(--saffron-soft); }
+.quality-readiness > svg { width: 1.6rem; height: 1.6rem; }
+.quality-readiness h2 { margin: 0; color: var(--navy-deep); font-size: .95rem; }
+.quality-readiness p { margin: .2rem 0; color: var(--ink-muted); font-size: .76rem; line-height: 1.4; }
+.quality-readiness strong { color: currentColor; font-size: .78rem; }
+.quality-readiness > span { padding: .35rem .65rem; border-radius: 999px; background: rgba(255,255,255,.72); font-size: .7rem; font-weight: 900; white-space: nowrap; }
+.quality-blockers { display: flex; flex-wrap: wrap; gap: .35rem; margin: .65rem 0 0; padding: 0; list-style: none; }
+.quality-blockers li { padding: .25rem .5rem; border: 1px solid rgba(139,80,8,.22); border-radius: 999px; color: #774407; background: rgba(255,255,255,.62); font-size: .66rem; font-weight: 800; }
+.quality-bars { display: grid; gap: 1rem; padding: 1.15rem; }
+.quality-bar-row { display: grid; gap: .42rem; }
+.quality-bar-row > span { display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-size: .78rem; }
+.quality-bar-row small { color: var(--ink-muted); font-size: .7rem; }
+.quality-card-count { display: flex; justify-content: space-between; gap: 1rem; margin: 0; padding: 0 1.15rem 1.15rem; color: var(--ink-muted); font-size: .74rem; }
+.quality-card-count b { color: var(--navy-deep); }
+.quality-evidence-note { display: flex; align-items: flex-start; gap: .75rem; margin: 1.15rem; padding: 1rem; border: 1px solid #c6ddea; border-radius: .85rem; color: var(--blue); background: var(--blue-soft); }
+.quality-evidence-note p { margin: 0; color: var(--ink-muted); font-size: .78rem; line-height: 1.55; }
 .quality-list { list-style: none; margin: 0; padding: .6rem 1.15rem 1rem; }
 .quality-list li { min-height: 2.8rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid #e9eef2; font-size: .8rem; }
 .part-quality-detail { flex-wrap: wrap; }
@@ -365,6 +384,8 @@ h1, h2, h3, p { margin-top: 0; }
   .quality-filter { width: 100%; flex-wrap: wrap; }
   .quality-filter select { flex: 1; min-width: 8rem; }
   .quality-toolbar, .admin-actions, .page-title { align-items: stretch; flex-direction: column; }
+  .quality-readiness { grid-template-columns: auto 1fr; }
+  .quality-readiness > span { grid-column: 1 / -1; width: max-content; }
   .review-toolbar { display: grid; grid-template-columns: 1fr; }
   .review-toolbar > span { margin: 0; }
   .review-grid { grid-template-columns: 1fr; }
@@ -388,3 +409,4 @@ h1, h2, h3, p { margin-top: 0; }
   .workspace-main { max-width: none; padding: 0; }
   .surface-panel, .metric-card { box-shadow: none; }
 }
+
