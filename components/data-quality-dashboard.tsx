@@ -6,11 +6,12 @@ import { AlertOctagon, BarChart3, CheckCircle2, CircleDashed, Filter, LoaderCirc
 import { buildQualityAnalytics, count, type CountValue, type PartLanguageQualityInput, type QualitySummaryInput } from '../lib/data-quality/metrics'
 import { createClient } from '../lib/supabase/client'
 import { useLanguage } from './language-provider'
+import { ReconciliationDrilldown } from './reconciliation-drilldown'
 import { MetricCard, Panel } from './ui-shell'
 
 type Summary = QualitySummaryInput
 type PartQuality = PartLanguageQualityInput
-type QualityView = 'overview' | 'coverage' | 'issues' | 'fields'
+type QualityView = 'overview' | 'coverage' | 'issues' | 'fields' | 'revision'
 
 type RpcResult = { data: unknown; error: { message: string } | null }
 const PART_TOTALS: Record<number, number> = { 227: 1014, 228: 973, 229: 888, 230: 579 }
@@ -30,6 +31,7 @@ const COPY = {
 export function DataQualityDashboard() {
   const { language, t } = useLanguage()
   const copy = COPY[language]
+  const revisionViewLabel = { en: 'Revision & reconciliation', te: 'రివిజన్ & సమన్వయం', ur: 'نظرثانی اور مفاہمت' }[language]
   const blockerLabels = BLOCKER_LABELS[language]
   const [part, setPart] = useState('')
   const [sourceLanguage, setSourceLanguage] = useState('all')
@@ -107,7 +109,7 @@ export function DataQualityDashboard() {
   return (
     <>
       <div className="quality-toolbar">
-        <div className="quality-filter"><Filter aria-hidden="true" /><select aria-label={t('part')} value={part} onChange={(event) => setPart(event.target.value)}><option value="">{t('allSupportedParts')}</option><option>227</option><option>228</option><option>229</option><option>230</option></select><select aria-label={t('sourceLanguage')} value={sourceLanguage} onChange={(event) => setSourceLanguage(event.target.value)}><option value="all">{t('allLanguages')}</option><option value="en">{t('englishSource')}</option><option value="te">{t('teluguSource')}</option><option value="ur">{t('urduSource')}</option></select><select aria-label={t('qualityFilter')} value={qualityView} onChange={(event) => setQualityView(event.target.value as QualityView)}><option value="overview">{copy.allViews}</option><option value="coverage">{copy.coverageView}</option><option value="issues">{copy.issuesView}</option><option value="fields">{copy.fieldsView}</option></select></div>
+        <div className="quality-filter"><Filter aria-hidden="true" /><select aria-label={t('part')} value={part} onChange={(event) => setPart(event.target.value)}><option value="">{t('allSupportedParts')}</option><option>227</option><option>228</option><option>229</option><option>230</option></select><select aria-label={t('sourceLanguage')} value={sourceLanguage} onChange={(event) => setSourceLanguage(event.target.value)}><option value="all">{t('allLanguages')}</option><option value="en">{t('englishSource')}</option><option value="te">{t('teluguSource')}</option><option value="ur">{t('urduSource')}</option></select><select aria-label={t('qualityFilter')} value={qualityView} onChange={(event) => setQualityView(event.target.value as QualityView)}><option value="overview">{copy.allViews}</option><option value="coverage">{copy.coverageView}</option><option value="issues">{copy.issuesView}</option><option value="fields">{copy.fieldsView}</option><option value="revision">{revisionViewLabel}</option></select></div>
         <button className="button secondary small" type="button" onClick={() => void load()} disabled={busy}>{busy ? <LoaderCircle className="spin" aria-hidden="true" /> : <RefreshCw aria-hidden="true" />}{copy.reload}</button>
       </div>
       {error && <p className="error-notice" role="alert">{error}</p>}
@@ -164,6 +166,7 @@ export function DataQualityDashboard() {
         </Panel>
         <Panel title={copy.ocrTitle}><div className="quality-evidence-note"><BarChart3 aria-hidden="true" /><p>{copy.ocrUnavailable}</p></div></Panel>
       </div>}
+      {(qualityView === 'overview' || qualityView === 'revision') && <ReconciliationDrilldown part={part} />}
     </>
   )
 }

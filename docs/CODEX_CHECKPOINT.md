@@ -2,16 +2,18 @@
 
 ## Current Phase
 
-Phase 4B — Review Search and Administration Improvements (PASS)
+Phase 4C — Revision Analytics and Reconciliation Drill-down (PASS)
 
 ## Status
 
-Phase 4A and Phase 4B are complete and tested on top of the existing Phase 3
+Phase 4A, Phase 4B and Phase 4C are complete and tested on top of the existing Phase 3
 ingestion foundation. Review now uses one server-filtered, enriched, keyset-
 paginated RPC rather than browser-side ID lists or deep offsets. Correction,
 optional source-record verification, one-issue resolution, history, and audit
 creation are atomic. Administration includes current-page email/role filtering
-and recent audited-export visibility.
+and recent audited-export visibility. Data Quality now includes a current-
+revision matrix and keyset-paginated EN↔TE reconciliation evidence with exact
+source-page actions.
 
 Phase 3C real EN/TE execution remains evidence-blocked: Tesseract is unavailable
 on this Windows host, Docker is unavailable, and no authorized human-verified
@@ -57,6 +59,26 @@ these conditions; it does not bypass them.
   unchanged.
 - Consolidated browser/server Supabase clients on the current generated schema
   type file and added the new RPC contracts.
+
+## Phase 4C Completed
+
+- Added an admin-only current-revision summary by Part showing expected logical
+  slots, active EN/TE documents, revision identifiers, language-linked slots,
+  paired/reconciled slots, missing editions, duplicate sources, EPIC conflicts,
+  unlinked source rows and verified logical slots.
+- Added an admin-only reconciliation evidence RPC with stable
+  `(Part, serial, row key)` keyset pagination, bounded pages and server-side
+  status/text filters. It returns fully enriched EN and TE source evidence in
+  one request and never constructs browser-side UUID lists.
+- Reconciliation continues to use Part + Serial as identity and EPIC, normalized
+  house, age and gender as corroboration. Cross-script names are displayed but
+  are not treated as a literal identity match.
+- Added source-page actions for both language editions, retaining document,
+  physical/printed page and bounding-box references.
+- Added multilingual EN/TE/UR interface copy for the new drill-down. Urdu is
+  interface-only here and no Urdu source data is synthesized.
+- Applied migration `phase4c_revision_reconciliation_drilldown` to the existing
+  Supabase project. No source record or verification state was changed.
 
 ## Phase 2 Boundary
 
@@ -158,8 +180,9 @@ they must not be inferred from card position or neighboring voters.
 - Complete extraction-service regression: PASS — 145 passed, 2 host-only
   Tesseract runtime skips, 3 upstream/cache warnings.
 - Python compile check: PASS.
-- Web unit tests: PASS — 50 passed, 1 environment-gated skip, including 6
-  Phase 4A analytics tests and 5 Phase 4B Review/Admin helper tests.
+- Web unit tests: PASS — 54 passed, 1 environment-gated skip, including 6
+  Phase 4A analytics tests, 5 Phase 4B Review/Admin helper tests and 4 Phase 4C
+  reconciliation helper tests.
 - Web TypeScript: PASS.
 - Web lint: PASS after reproducing and fixing locked `.pytest_cache` traversal.
 - Web production build: PASS; all application routes generated.
@@ -168,6 +191,16 @@ they must not be inferred from card position or neighboring voters.
 - Live function security check: PASS — both Phase 4B functions are security
   invoker, `anon` execute is false, and authenticated execute is true subject
   to the explicit admin check/RLS.
+- Live Phase 4C summary check: PASS — all four Parts returned with one current
+  revision identifier per Part and logical totals kept separate from language
+  source-row totals.
+- Live Phase 4C pagination check: PASS — two five-row evidence pages returned
+  with zero overlap; 5,039 canonical/unlinked evidence rows are represented.
+- Live Phase 4C filter check: PASS — Part 227 returns 18 deterministic EPIC
+  conflicts without exposing source values in the aggregate check.
+- Live Phase 4C function security check: PASS — both functions are security
+  invoker, `anon` execute is false, and authenticated execution remains subject
+  to the explicit administrator check and RLS.
 
 ## Artifacts
 
@@ -191,7 +224,11 @@ they must not be inferred from card position or neighboring voters.
 - `src/AdvancedReviewPage.tsx`
 - `src/review.ts`
 - `components/admin-console.tsx`
+- `components/reconciliation-drilldown.tsx`
 - `lib/admin/user-filter.ts`
+- `lib/data-quality/reconciliation.ts`
+- `lib/data-quality/reconciliation.test.ts`
+- `supabase/migrations/20260912154648_phase4c_revision_reconciliation_drilldown.sql`
 - focused tests in `services/extraction-api/tests/`
 
 ## Known Limitations / Blockers
@@ -203,6 +240,11 @@ they must not be inferred from card position or neighboring voters.
   on ready deploy `6a9ff223ff4ba4000898dbdd` and therefore does not yet include
   Phase 4B. Retry deployment from the linked Netlify project; do not rebuild or
   recommit Phase 4B.
+- A further authorized Netlify retry on 2026-09-12 again reached the upload
+  service but ended with the same `500 Internal Server Error`; no deploy was
+  registered. Do not loop on the same MCP upload route. Use a Git-connected
+  Netlify build or Netlify dashboard retry when that authenticated route is
+  available.
 - The backend repository, live RPC, and page worker are ready, but the worker
   has not run against a real voter page in an OCR-capable private environment.
 - Three real pages were segmented without retaining crops, but no real card OCR
@@ -225,9 +267,11 @@ they must not be inferred from card position or neighboring voters.
 
 ## Next Exact Task
 
-Phase 4C — Revision Analytics and Reconciliation Drill-down
+Production deployment recovery, then Phase 4D — Data Quality Export and Audit
+Drill-down.
 
-Add deterministic Part/language/reconciliation drill-downs using existing live
-aggregates and paginated source evidence. Do not claim measured OCR accuracy or
-Golden readiness until the Phase 3 evidence blockers are resolved.
+First publish the tested Phase 4B/4C commit through the existing Netlify project
+using a non-failing authenticated route. Then add audited, admin-only quality
+snapshot exports without claiming measured OCR accuracy or Golden readiness
+until the Phase 3 evidence blockers are resolved.
 

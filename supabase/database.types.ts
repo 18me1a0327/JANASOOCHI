@@ -1342,6 +1342,79 @@ export type Database = {
           unlinked_source_count: number
         }[]
       }
+      get_reconciliation_evidence_page_v1: {
+        Args: {
+          p_after_part?: number
+          p_after_row_key?: string
+          p_after_serial?: number
+          p_limit?: number
+          p_part?: number
+          p_search?: string
+          p_status?: string
+        }
+        Returns: {
+          age_evidence: string
+          cursor_part: number
+          cursor_serial: number
+          english_age: number
+          english_bounding_box: Json
+          english_document_id: string
+          english_epic: string
+          english_gender: string
+          english_house_number: string
+          english_physical_page: number
+          english_printed_page: number
+          english_relation_name: string
+          english_revision_identifier: string
+          english_source_count: number
+          english_source_record_id: string
+          english_voter_name: string
+          epic_evidence: string
+          gender_evidence: string
+          house_evidence: string
+          logical_verification_status: Database["public"]["Enums"]["verification_status"]
+          logical_voter_id: string
+          part_number: number
+          reconciliation_status: string
+          row_key: string
+          serial_number: string
+          telugu_age: number
+          telugu_bounding_box: Json
+          telugu_document_id: string
+          telugu_epic: string
+          telugu_gender: string
+          telugu_house_number: string
+          telugu_physical_page: number
+          telugu_printed_page: number
+          telugu_relation_name: string
+          telugu_revision_identifier: string
+          telugu_source_count: number
+          telugu_source_record_id: string
+          telugu_voter_name: string
+          total_count: number
+        }[]
+      }
+      get_revision_reconciliation_summary_v1: {
+        Args: { p_part?: number }
+        Returns: {
+          active_documents: number
+          duplicate_source_slots: number
+          english_linked_slots: number
+          epic_conflict_slots: number
+          expected_slots: number
+          missing_english_slots: number
+          missing_telugu_slots: number
+          needs_review_slots: number
+          paired_slots: number
+          part_number: number
+          reconciled_slots: number
+          revision_identifiers: string[]
+          source_records: number
+          telugu_linked_slots: number
+          unlinked_source_records: number
+          verified_slots: number
+        }[]
+      }
       get_review_issues_page: {
         Args: {
           p_category?: string
