@@ -233,6 +233,21 @@ they must not be inferred from card position or neighboring voters.
 
 ## Known Limitations / Blockers
 
+- Deployment root cause confirmed in the authenticated Netlify dashboard on
+  2026-09-13: the team has exhausted deploy credits and is running on operational
+  credits, which keep published sites online but cannot fund production deploys.
+  Git-connected deploys ARE firing; the Phase 4C commit
+  `bd8cb85ca608955be5bdcfd63d35038f18d5ffa5` was explicitly skipped with
+  "Skipped due to account credit usage exceeded" (deploy
+  `6aa5769a87d41200085ee85c`). Do not repeat MCP uploads or rebuild the app.
+  Deployment requires the next Netlify billing-cycle allowance or an account-owner
+  approved paid upgrade; no paid upgrade was enabled.
+  The public production login at `https://janasoochi.netlify.app/login` was opened
+  successfully and still serves the September 8 published deployment. Production
+  Phase 4B/4C control verification remains deferred until those changes publish.
+  Netlify production `NEXT_PUBLIC_SUPABASE_URL` was verified against the existing
+  project `https://zlgwpegklxzmwppghvst.supabase.co`; both Next.js and legacy Vite
+  publishable-key environment entries are present. No key was revealed/changed.
 - Phase 4B is pushed to GitHub at commit
   `5d6294c73ac5d0efee166651ad874f4aef48d3cd`. Two authorized Netlify upload
   attempts on 2026-09-10 reached the upload service but ended with Netlify
@@ -270,8 +285,10 @@ they must not be inferred from card position or neighboring voters.
 Production deployment recovery, then Phase 4D — Data Quality Export and Audit
 Drill-down.
 
-First publish the tested Phase 4B/4C commit through the existing Netlify project
-using a non-failing authenticated route. Then add audited, admin-only quality
+Once deploy credits renew (or the owner authorizes a paid upgrade), publish the
+tested Phase 4B/4C commit through the existing Git-connected Netlify project.
+Do not retry deployment while Netlify explicitly blocks production deploys.
+Then add audited, admin-only quality
 snapshot exports without claiming measured OCR accuracy or Golden readiness
 until the Phase 3 evidence blockers are resolved.
 
