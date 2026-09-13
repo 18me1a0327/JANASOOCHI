@@ -2,7 +2,70 @@
 
 ## Current Phase
 
-Cloudflare Workers migration — local foundation PASS; deployment/auth QA PARTIAL
+Cloudflare Workers production QA — local gates PASS; deployment PARTIAL
+
+## Production QA / owner-requested deployment (2026-09-13)
+
+- Read this checkpoint and CLOUDFLARE_READINESS first; migration was not rebuilt.
+  Private GitHub main is 40da370c25491940731f542cae7b0c82330aac35.
+- The supplied Cloudflare account is now authenticated in the browser. Its
+  Workers & Pages list explicitly shows "No projects found" / "You have not
+  created any projects yet", with no search filter active. September 1–13
+  account activity shows 0 requests, 0ms CPU, 0 observability events and 0 build
+  minutes. This is NOT evidence of a deployed Worker's runtime performance.
+- Dashboard account subdomain is anandkalidindi28.workers.dev. One probe of
+  the expected janasoochi hostname failed TLS handshake; it is NOT a confirmed
+  deployment URL. No deployed version/commit can be certified.
+- Wrangler whoami is unauthenticated here. deployments status cannot retrieve
+  production state without authorization. No token requested/extracted, no
+  temporary anonymous account/deployment, and no Paid upgrade enabled.
+- Owner subsequently requested "Create the project and deploy it". Opened the
+  existing account's Workers creation flow (NOT Pages). No Git provider is
+  connected. Connect GitHub did not advance in this in-app browser; its hidden
+  repository step offers Connect GitHub account but is not visible/interactable.
+  Owner action requested: connect GitHub in a normal browser, grant access ONLY
+  to 18me1a0327/JANASOOCHI, then expose the repository selector. Do not deploy
+  Hello World/static assets as fake application success.
+- Owner replied "yes, done". Refreshed the dashboard and retried the visible
+  Connect GitHub control through both accessibility and Playwright. The visible
+  screen still stays on Make something new; no selectable repository appears.
+  DOM inspection confirms its repository step has no Git provider and is hidden
+  (connection label has zero-size bounds). No new GitHub grant was made here.
+  Authorization may exist in the owner's other browser but is not usable in
+  this dashboard/CLI context. Resume from a visible repository selector or an
+  authorized normal-terminal Wrangler deployment, not from assumed success.
+- Preferred deployment continuation: existing private repo/main, root '.',
+  build pnpm build:cloudflare, deploy pnpm deploy:cloudflare. Configure the
+  existing NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  at build AND Worker runtime. No service-role key. Stay on Workers Free.
+- Re-executed gates: typecheck PASS (also after Worker typegen), lint PASS,
+  Vitest 68 PASS / 1 existing environment-gated OCR skip, vinext check PASS
+  with its existing App Router StrictMode partial-support warning,
+  build:cloudflare PASS, normal Next production build PASS.
+- Fresh built-Worker/workerd preview: 12/12 HTTP smoke checks PASS. Covers
+  home/login, anonymous + spoofed-role denial on Search/Documents/Review/
+  Data Quality/Administration/Profile/Source, safe404, manifest/icons/SW/offline.
+  These are LOCAL results, not production certification. Existing nine focused
+  gate/wrapper tests verify fail-closed Admin checks, cookies and streaming.
+- Wrangler deploy --dry-run again reproduces native esbuild parent-drive
+  access denial, despite dist/server/index.js existing. Local official Vite
+  workerd preview succeeds. Use Cloudflare Git/Linux build or owner's normal
+  terminal; do not switch adapter or repeatedly retry the sandbox path.
+- Production authenticated Viewer/Admin, cookie refresh/logout, Supabase SSR,
+  Review/Data Quality/source highlighting, PWA installation and Worker logs
+  remain NOT TESTED: no live Worker or authorized Worker session is available.
+  Real per-request CPU is NOT MEASURABLE. Free-tier SSR CPU remains a RISK;
+  zero account activity must not be reported as a performance PASS.
+- Netlify fallback independently HTTP200 with login markup at
+  https://janasoochi.netlify.app/login; unchanged, ACTIVE. Money spent INR0.
+- Only checkpoint/readiness documentation changed. No UI, adapter, OCR, schema,
+  RLS, authentication or Netlify configuration changes; no real data or secrets.
+- NEXT DEPLOYMENT ACTION: owner GitHub connection approval, configure both
+  public variables, deploy existing Worker, record returned URL/version, run
+  scripts/cloudflare-smoke.mjs against HTTPS production and the real signed-in
+  Viewer/Admin/session/source/PWA matrix, then inspect logs/CPU. Keep Netlify.
+- NEXT EXACT PRODUCT TASK after production QA: return to real OCR/GOLD evidence,
+  Phase 2F → Phase 2G → Phase 2H → finish Phase 3. No fabricated Golden/accuracy.
 
 ## Cloudflare Workers migration (2026-09-13)
 
@@ -377,4 +440,3 @@ Do not retry deployment while Netlify explicitly blocks production deploys.
 Then add audited, admin-only quality
 snapshot exports without claiming measured OCR accuracy or Golden readiness
 until the Phase 3 evidence blockers are resolved.
-

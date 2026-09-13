@@ -1,7 +1,39 @@
 # Cloudflare Workers migration
 
-Checked 2026-09-13. PARTIAL: builds/local anonymous QA pass; account
-authorization, deployment and signed-in production QA remain pending.
+Checked 2026-09-13. PARTIAL: builds/local anonymous QA pass. The owner is
+browser-authenticated, but the supplied account has no deployed projects;
+GitHub connection/deployment and signed-in production QA remain pending.
+
+## Latest production verification
+
+Authenticated Workers & Pages dashboard shows "No projects found", no filter,
+0 requests/CPU/events/build minutes, and account subdomain
+anandkalidindi28.workers.dev. This is not deployed runtime evidence. The expected
+janasoochi hostname failed a single TLS probe; no production URL/version/commit
+is confirmed. Wrangler authorization is unavailable in this process.
+
+Owner requested project creation/deployment. Workers creation flow is open, but
+no Git provider is connected and Connect GitHub did not advance in the in-app
+browser. Owner must connect GitHub in a normal browser and approve ONLY the
+existing private 18me1a0327/JANASOOCHI repository. Do not grant all-repository
+access, publish an empty Worker or use temporary anonymous deployment.
+Owner reported completion, but refreshing/retrying with accessibility and
+Playwright still did not expose a selectable repository in this session.
+The provider-connection step remains hidden. Account approval is not certified
+as usable here; a visible repository selector or authorized Wrangler deployment
+is needed to continue.
+
+Continue with root '.', main branch, build pnpm build:cloudflare and deploy
+pnpm deploy:cloudflare. Both existing public Supabase variables are required
+at build and runtime. Never configure a service-role key in the web Worker.
+No paid service enabled; Netlify fallback remains active.
+
+Re-run results: TypeScript/lint/68 web tests PASS (one existing skip), vinext
+check/Worker build/Next build PASS, fresh built-workerd smoke 12/12 PASS.
+Wrangler dry-run still fails native esbuild parent-drive access in this sandbox;
+use Git/Linux build or the owner's normal terminal rather than changing adapters.
+All real authenticated production routes, logs and per-request CPU remain
+unverified. See CODEX_CHECKPOINT for exact continuation and evidence boundaries.
 
 ## Adapter/build
 
@@ -138,4 +170,3 @@ private HTML as a shortcut.
 Money spent INR0. Netlify fallback ACTIVE; DNS unchanged. Next: owner Wrangler
 authorization, deploy from nonrestricted build, full signed-in role/session/
 source/PWA/mobile and live CPU QA before changing the canonical production host.
-
