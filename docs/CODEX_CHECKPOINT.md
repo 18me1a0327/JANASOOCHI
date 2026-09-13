@@ -2,7 +2,51 @@
 
 ## Current Phase
 
-Phase 4C — Revision Analytics and Reconciliation Drill-down (PASS)
+Final master run — Stage A Cloudflare readiness (PARTIAL), Stage C OCR runtime (BLOCKED)
+
+## Final Master Continuation (2026-09-13)
+
+- Read the complete owner continuation brief and current checkpoint; inspected
+  only relevant hosting/OCR/PWA files. Local Git has no commits and the project
+  files are untracked; the private GitHub repository remains the authoritative
+  commit history. Do not initialize/reset or indiscriminately add this tree.
+- Stage A: verified Next.js 16.3.4, root pnpm build, `.next` runtime output,
+  request-cookie authentication/proxy, admin server layouts and dynamic source
+  routes. Static Cloudflare Pages cannot preserve this application unchanged.
+  No Vite fallback, static-export conversion, new adapter, or redirect was added.
+- Stage B: BLOCKED pending owner approval to use compatible Cloudflare Workers
+  hosting rather than static Pages and account authorization. No Cloudflare
+  connector/environment credentials are available. See
+  `docs/CLOUDFLARE_READINESS.md` for exact current settings and compatibility gate.
+- Stage C: added a typed, read-only `python -m app.ocr.runtime` preflight with
+  explicit executable override, known-path discovery, bounded version/language
+  probes and safe errors. Live probe: no Tesseract executable; eng/tel absent.
+  No winget/Docker/Tesseract command was available; common install paths absent.
+  No system installer, paid service, OCR job or source persistence was run.
+- Stage D/E/F: no populated authorized human GOLD sample exists in the
+  repository; measured OCR comparison and production freeze remain BLOCKED.
+  Existing private CSV verifier/template remain intact; OCR is never GOLD.
+- Stage G/H and Phase 5/7 remain evidence-gated; Phase 6 is deferred unless a
+  real benchmark justifies it. No verified/Golden count or accuracy was invented.
+- Added five tests executing the actual service worker: public cache allowlist,
+  sensitive/cross-origin/mutation bypass, network-only authenticated navigation,
+  offline fallback, and standalone manifest/asset paths. No UI/PWA redesign.
+- Supabase advisor still reports only leaked-password protection disabled.
+  Current docs make this Pro-plan-and-above; no paid upgrade/config change made.
+- Money spent this run: INR 0. New paid services: none. No DB migration.
+- Files changed: `docs/CLOUDFLARE_READINESS.md`, this checkpoint,
+  `lib/pwa/service-worker.test.ts`,
+  `services/extraction-api/app/ocr/runtime.py`,
+  `services/extraction-api/tests/test_ocr_runtime.py`,
+  `services/extraction-api/docs/OCR_RUNTIME.md`.
+- Tests: focused OCR/runtime/GOLD regression 44 passed, 2 native-runtime skips;
+  web 59 passed, 1 environment-gated skip; TypeScript/lint/Next production build
+  PASS; full extraction regression 154 passed, 2 native-runtime skips, 3 existing
+  upstream/cache warnings; Python compilation PASS. No full-roll OCR or real
+  accuracy benchmark was run.
+- Next exact task: obtain owner decision for Cloudflare Workers compatibility
+  work and a free EN/TE Tesseract runtime. Then tiny private OCR smoke test and
+  genuine human GOLD annotation; never skip the comparison/freeze evidence gates.
 
 ## Status
 
