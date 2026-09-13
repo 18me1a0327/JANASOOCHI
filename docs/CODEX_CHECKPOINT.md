@@ -2,7 +2,47 @@
 
 ## Current Phase
 
-Final master run — Stage A Cloudflare readiness (PARTIAL), Stage C OCR runtime (BLOCKED)
+Cloudflare Workers migration — local foundation PASS; deployment/auth QA PARTIAL
+
+## Cloudflare Workers migration (2026-09-13)
+
+- Owner approved Workers (not Pages) and supplied existing account dashboard.
+  Pinned vinext 1.0.0-beta.9 selected; no blocking imported-API gap, no OpenNext.
+  Beta adapter: App Router StrictMode wrapping partial.
+- Separate Vite/Workers config, typed no-store response wrapper and deployment
+  scripts preserve Next/Netlify, UI, Supabase/Auth/RLS/schema and OCR unchanged.
+- Actual Worker build PASS. build:cloudflare runs next typegen afterward to fix
+  reproduced stale .next validator types. No TypeScript/validation disabling.
+- TypeScript/lint/Next production build PASS; web 68 PASS/1 existing OCR fixture
+  skip; 12/12 built-workerd HTTP smoke checks PASS. Nine added unit cases cover
+  existing server Admin gate and redirect/cookie/streaming/failure wrapper.
+- Auth/protected routes PARTIAL: anonymous/spoofed-role protection PASS on all
+  workspace/source routes; EN/TE/UR UI and anonymous Admin refresh PASS.
+  Signed-in Viewer/Admin/session refresh/logout/exact source QA not certified.
+- Authenticated local workerd outbound fetch reproduced AuthRetryableFetchError,
+  safe login redirect after retries. Node Supabase settings HTTP200/email on/
+  Google off; not a DB outage. Native sandbox egress unresolved; no TLS/auth bypass.
+- Supabase PARTIAL: existing config preserved/settings PASS; production untested.
+  Google/callback N/A. PWA PARTIAL: assets/privacy tests PASS, production install/
+  mobile/offline/logout pending. No sensitive client asset or cache added.
+- Free tier RISK: 56 client assets; 106 Worker JS modules, 2,186,647 raw bytes,
+  637,273 summed gzip bytes (estimate, not upload verification). Live SSR/proxy/
+  Admin/Review/Quality/Source CPU not measured; no Paid binding/feature enabled.
+- Deployment URL NONE: dashboard login and Wrangler owner OAuth pending. Official
+  authorization page handed to owner. Local Wrangler dry-run hits esbuild's
+  denied parent-drive scan; official Vite workerd preview works with private temp
+  XDG/log state. Repeat dry-run/deploy in normal terminal/Cloudflare Linux build.
+- Netlify fallback ACTIVE: Node /login HTTP200/login markup; DNS unchanged.
+  Money spent INR0. No PDFs/voter exports/crops/secrets/build output committed.
+- Files: package.json, pnpm-lock.yaml, pnpm-workspace.yaml, .gitignore,
+  vite.cloudflare.config.ts, wrangler.jsonc, lib/cloudflare/worker.ts + test,
+  lib/auth/require-admin.test.ts, scripts/cloudflare-smoke.mjs, README.md,
+  docs/CLOUDFLARE_READINESS.md and this checkpoint.
+- Commit: focused GitHub checkpoint pending creation (private remote canonical).
+  Do not initialize/reset/add the entire untracked local tree.
+- Next exact task: owner Wrangler authorization, Workers Free deployment from
+  nonrestricted build, full signed-in role/session/source/PWA/mobile + live CPU QA.
+  Keep Netlify canonical until those gates pass. See hosting guide.
 
 ## Final Master Continuation (2026-09-13)
 
@@ -335,4 +375,3 @@ Do not retry deployment while Netlify explicitly blocks production deploys.
 Then add audited, admin-only quality
 snapshot exports without claiming measured OCR accuracy or Golden readiness
 until the Phase 3 evidence blockers are resolved.
-

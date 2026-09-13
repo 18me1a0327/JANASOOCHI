@@ -4,5 +4,7 @@ packages:
 allowBuilds:
   esbuild: true
   tesseract.js: false
+  workerd: true
 onlyBuiltDependencies:
   - esbuild
+  - workerd

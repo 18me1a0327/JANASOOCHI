@@ -6,6 +6,9 @@ node_modules-broken-*/
 dist/
 .next/
 .netlify/
+.wrangler/
+.dev.vars
+.dev.vars.*
 out/
 coverage/
 .env
@@ -40,4 +43,3 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-

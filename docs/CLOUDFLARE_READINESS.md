@@ -1,72 +1,139 @@
-# Cloudflare deployment readiness
+# Cloudflare Workers migration
 
-Checked 2026-09-13. Status: PARTIAL — no Cloudflare build/deployment exists.
+Checked 2026-09-13. PARTIAL: builds/local anonymous QA pass; account
+authorization, deployment and signed-in production QA remain pending.
 
-## Verified current frontend
+## Adapter/build
 
-| Setting | Current value |
-| --- | --- |
-| Framework | Next.js 16.3.4 App Router, React 19, TypeScript |
-| Root | Repository root |
-| Package manager | pnpm; commit `pnpm-lock.yaml` |
-| Build / runtime | `pnpm build` / `pnpm start` |
-| Build output | `.next` — not a static Pages upload directory |
-| Public environment names | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` |
-| Source storage / database | Existing Supabase project; unchanged |
-| Fallback | Existing `netlify.toml` and public Netlify production retained |
+Pinned vinext 1.0.0-beta.9, @vinext/cloudflare 1.0.0-beta.7,
+@cloudflare/vite-plugin 1.54.8, @vitejs/plugin-rsc 0.5.34,
+react-server-dom-webpack 19.2.8 and Wrangler 4.131.1.
+The [official guide](https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/)
+recommends vinext; the [adapter docs](https://github.com/cloudflare/vinext)
+support this Next.js 16 App Router/proxy/cookies/SSR/dynamic-route usage.
+vinext check found no blocking imported-API gaps (4/4 Next modules supported,
+9 pages/5 layouts). App Router StrictMode wrapping is partial; adapter remains
+beta. OpenNext was not added: no blocking feature gap found. Compatibility
+coverage is NOT OCR accuracy.
 
-`vite.config.ts` and `src/` retain legacy components, but `package.json` builds
-Next.js. Deploying the old Vite entry would omit the current Next.js shell,
-Administration and Phase 4C work. Do not deploy it as the current application.
+Separate vite.cloudflare.config.ts preserves legacy Vite tests and normal
+Next/Netlify commands/configuration. No Pages/static export/SPA catch-all.
+Use Node22+ and committed pnpm lockfile:
 
-## Pages blocker and proposed alternative
+```bash
+pnpm install
+pnpm check:cloudflare
+pnpm build:cloudflare
+pnpm preview:cloudflare --port 8787
+# Another terminal:
+pnpm smoke:cloudflare http://localhost:8787
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm build
+```
 
-Cloudflare's current [Pages guide](https://developers.cloudflare.com/pages/framework-guides/nextjs/)
-targets static Next.js exports; full-stack Next.js uses Workers. This app uses
-request cookies, Supabase server authentication, protected server layouts,
-administrator checks and dynamic `/source/[pdfId]` routes. Static export would
-require removing/replacing working server protections and is not authorized.
-Do not add a catch-all `/index.html` redirect or publish `.next` to Pages.
+Output: dist/server/wrangler.json, Worker/SSR JS, dist/client public assets.
+build:cloudflare finishes with next typegen because vinext overwrites
+.next/types/routes.d.ts and otherwise conflicts with stale Next validators.
+Reproduced and fixed without weakening TypeScript.
 
-Owner decision required: permit **Cloudflare Workers** for the existing web app,
-with a tested compatible adapter, rather than static Pages. This changes hosting
-only; Supabase and the Python worker remain separate. Cloudflare recommends
-vinext for new deployments; [OpenNext](https://developers.cloudflare.com/workers/framework-guides/web-apps/opennext/)
-adapts existing Next.js build output. The latter guide currently marks Node.js
-middleware unsupported, so compatibility with Next.js 16's `proxy.ts` must be
-proven before changing dependencies or declaring readiness. No adapter has been
-selected/installed, and no untested Wrangler config was added.
+Official Cloudflare Vite preview runs the built Worker in workerd. Wrangler
+preview/deploy dry-run hits esbuild's denied parent-drive directory scan in
+this Windows sandbox. Repeat dry-run/upload verification in a normal terminal
+or Cloudflare Linux build. For sandbox preview only, use private temporary
+XDG_CONFIG_HOME/WRANGLER_LOG_PATH directories to avoid denied global tool-state
+writes. Never put tool state under public assets.
 
-After approval: pin adapter/Wrangler versions, prove proxy/cookie compatibility,
-build and test a local Worker preview, measure bundle/free-tier limits, then
-connect only the existing private GitHub repository to the owner's Cloudflare
-account. Do not automatically accept a paid plan, broad GitHub permissions or
-paid storage bindings. Account authorization must be performed by the owner
-where required. No authenticated Cloudflare connector is available in this run.
+## Security/environment
 
-Public environment values must be configured at build and runtime. Never put a
-Supabase service-role/secret key, database password, or deployment token in a
-`NEXT_PUBLIC_*` variable, Git, public asset or frontend bundle. Existing frontend
-uses only the two public environment names above; OCR credentials remain backend-only.
+lib/cloudflare/worker.ts delegates unchanged to vinext's typed App Router
+handler, adding private/no-store to Worker responses including redirects/RSC.
+Config headers alone missed redirects (caught in smoke tests). Wrapper preserves
+status, location, streaming body and multiple Set-Cookie headers. ASSETS serves
+public files first; hashed JS/CSS retain immutable caching. html_handling=none
+preserves exact /offline.html. No KV/Images/D1/R2/AI/cache binding enabled.
 
-## Routing and production smoke gate
+Supabase getUser validation, server profile/Admin gates, private Storage/RLS and
+browser refresh/logout remain unchanged. No schema migration or OCR move.
 
-Preserve native Next.js routes and request-time authorization. Direct-load and
-refresh `/`, `/login`, `/search`, `/documents`, `/review`, `/data-quality`,
-`/administration`, `/profile`, and `/source/{documentId}?page={physicalPage}&voter={recordId}`.
-Confirm anonymous redirects, Viewer/Admin boundaries, sign-in/session refresh,
-logout, EN/TE/UR UI, exact-source page/bbox, desktop/mobile and server errors.
-Production smoke checks are BLOCKED until a compatible authenticated deployment exists.
+| Variable name | Classification | Usage |
+| --- | --- | --- |
+| NEXT_PUBLIC_SUPABASE_URL | PUBLIC | Build + Worker runtime |
+| NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY | PUBLIC, not service-role | Build + Worker runtime |
+| CLOUDFLARE_ACCOUNT_ID | SERVER-ONLY deployment metadata | Existing owner's account |
+| CLOUDFLARE_API_TOKEN | SECRET, optional | CI/deploy only; not created here |
 
-## PWA contract (unchanged)
+Legacy VITE_SUPABASE aliases are public but not Worker requirements. No actual
+values printed. No service-role/secret key in frontend. Configure both public
+names at build and runtime. Vite emits ignored dist/server/.dev.vars for local
+preview; never commit/publish it. No secrets exist in dist/client.
+OAuth credentials stay in private Wrangler state, never Git.
 
-- `/manifest.webmanifest`: standalone, start URL `/search`, EN default, 192/512 PNG icons.
-- `/sw.js`: navigation is network-first with `/offline.html` fallback. Its explicit
-  cache allowlist contains only offline HTML, manifest and icons; no voter API,
-  authenticated page, private PDF, search result or export is broadly cached.
-- Paths are rooted at `/`; publish at an HTTPS origin root and retain the icon
-  safe area. Verify installation and offline/logout behavior in the final preview.
-- Do not add Cloudflare edge caching for authenticated HTML or sensitive records.
+## Exact pending owner action
 
-No UI, auth, RLS, database, Netlify deployment or source voter data was modified.
+Supplied account dashboard redirected to login; wrangler whoami unauthenticated.
+Official OAuth page opened for owner approval; no password/token requested.
+If authorization expires, run in the owner's normal terminal:
 
+```bash
+pnpm exec wrangler login
+pnpm exec wrangler whoami
+```
+
+Set CLOUDFLARE_ACCOUNT_ID to the existing account shown in the supplied dashboard
+URL. Stay on Workers Free. Build with the two public Supabase values; configure
+the same two under Worker's runtime Variables before deployment:
+
+```bash
+pnpm build:cloudflare
+pnpm exec wrangler deploy --config dist/server/wrangler.json --dry-run
+pnpm deploy:cloudflare
+pnpm smoke:cloudflare https://THE-RETURNED-WORKER-URL
+```
+
+deploy:cloudflare uses --keep-vars to retain dashboard runtime configuration.
+No anonymous temporary production deployment. For Cloudflare Git builds,
+connect ONLY the existing private JANASOOCHI repo: root ".", build command
+pnpm build:cloudflare, deploy command pnpm deploy:cloudflare, both public
+variables in build/runtime settings. Owner approves any new GitHub permissions.
+No new repository integration/paid CI/DNS change was enabled here.
+
+## Evidence/limits
+
+- TypeScript/lint/Next production build/actual Worker build PASS.
+- Web 68 passed, 1 existing real-OCR fixture skip. New tests: five server Admin
+  gate cases + four cookie/streaming/redirect/failure response-wrapper cases.
+- Built-workerd HTTP smoke 12/12 PASS: home/login, seven protected routes
+  (anonymous and spoofed role), manifest/icons, SW/exact offline path, safe404.
+- Browser EN/TE/UR switch/persistence and anonymous Admin direct load/refresh PASS.
+  Owner interaction initially yielded signed-in workspace requests, but this is
+  not a complete independently certified signed-in role/refresh/source QA run.
+- Later authenticated local request reproduced workerd AuthRetryableFetchError
+  (outbound fetch internal error); eventually safe login redirect, not stacktrace.
+  Node Supabase settings probe HTTP200/email on/Google off. Do not call DB down.
+  Sandbox-specific authenticated native egress unresolved; no TLS/auth bypass.
+- Google/callback N/A: not implemented/configured. No unrelated OAuth feature added.
+- PWA privacy/shell tests pass. Production HTTPS installation, mobile, signed-in
+  source highlights, refresh/logout/offline and real Viewer/Admin matrix pending.
+- Netlify fallback /login independently HTTP200 with login markup, unchanged.
+- No real voter PDFs/crops/exports, secrets or build artifacts added to Git.
+
+[Free limits](https://developers.cloudflare.com/workers/platform/limits/):
+10ms CPU/request, 100k requests/day, 3MB compressed Worker, 50 external
+subrequests. Measured 56 client assets (~4.73MB), 106 Worker/SSR JS modules:
+2,186,647 raw bytes; 637,273 summed per-module gzip bytes. This is an estimate,
+NOT Wrangler's final upload size. Static assets do not count as Worker JS.
+
+Free-tier fit RISK: no live CPU telemetry without deployment. Elapsed local
+time includes network wait, not billed CPU. Risk: login/proxy, all authenticated
+SSR, especially Admin/Review/Quality/Source. Admin path can make ~5 Supabase
+calls (proxy getUser, workspace getUser/profile, Admin getUser/profile), plus
+bounded refresh retries. Search/lists remain paginated browser-to-Supabase;
+PDF/OCR/benchmarks remain outside Workers. If normal requests repeatedly exceed
+Free CPU, report NOT SAFE and retain Netlify; never buy Paid/weaken auth/cache
+private HTML as a shortcut.
+
+Money spent INR0. Netlify fallback ACTIVE; DNS unchanged. Next: owner Wrangler
+authorization, deploy from nonrestricted build, full signed-in role/session/
+source/PWA/mobile and live CPU QA before changing the canonical production host.

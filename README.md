@@ -59,6 +59,21 @@ pnpm build
 
 The included `netlify.toml` builds the Next.js application with Netlify's maintained Next.js adapter. In Netlify, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for production and deploy the `main` branch. Do not store credentials in the repository.
 
+## Cloudflare Workers (parallel hosting path)
+
+The Next/Netlify fallback is preserved. Pinned vinext adds Workers SSR without
+changing Supabase or moving PDF/OCR into Workers:
+
+```bash
+pnpm build:cloudflare
+pnpm preview:cloudflare --port 8787
+pnpm smoke:cloudflare http://localhost:8787
+```
+
+Owner authorization, build/runtime public variables and live Free CPU QA are
+required before switching hosts. See [Cloudflare migration guide](docs/CLOUDFLARE_READINESS.md).
+Do not upload `.next` to Pages or publish private PDFs/build secrets as assets.
+
 ## Application areas
 
 - **Search** — paginated, AND-combined filters with exact indexed identity fields and optional controlled fuzzy matching.
