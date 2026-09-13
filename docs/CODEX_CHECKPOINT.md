@@ -38,7 +38,9 @@ Cloudflare Workers migration — local foundation PASS; deployment/auth QA PARTI
   vite.cloudflare.config.ts, wrangler.jsonc, lib/cloudflare/worker.ts + test,
   lib/auth/require-admin.test.ts, scripts/cloudflare-smoke.mjs, README.md,
   docs/CLOUDFLARE_READINESS.md and this checkpoint.
-- Commit: focused GitHub checkpoint pending creation (private remote canonical).
+- Commit/push: f10f10050f8f00966728afdd03583b4bb5fb7f63 on private main,
+  focused 13-file migration diff inspected; no real data/secrets/build outputs.
+  Owner OAuth attempt expired without approval; rerun wrangler login to deploy.
   Do not initialize/reset/add the entire untracked local tree.
 - Next exact task: owner Wrangler authorization, Workers Free deployment from
   nonrestricted build, full signed-in role/session/source/PWA/mobile + live CPU QA.
@@ -375,3 +377,4 @@ Do not retry deployment while Netlify explicitly blocks production deploys.
 Then add audited, admin-only quality
 snapshot exports without claiming measured OCR accuracy or Golden readiness
 until the Phase 3 evidence blockers are resolved.
+

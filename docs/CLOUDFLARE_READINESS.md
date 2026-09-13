@@ -74,6 +74,7 @@ OAuth credentials stay in private Wrangler state, never Git.
 
 Supplied account dashboard redirected to login; wrangler whoami unauthenticated.
 Official OAuth page opened for owner approval; no password/token requested.
+The attempt expired without approval; no deployment URL was created.
 If authorization expires, run in the owner's normal terminal:
 
 ```bash
@@ -137,3 +138,4 @@ private HTML as a shortcut.
 Money spent INR0. Netlify fallback ACTIVE; DNS unchanged. Next: owner Wrangler
 authorization, deploy from nonrestricted build, full signed-in role/session/
 source/PWA/mobile and live CPU QA before changing the canonical production host.
+
