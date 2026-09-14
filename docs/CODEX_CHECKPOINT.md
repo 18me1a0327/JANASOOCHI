@@ -2,7 +2,89 @@
 
 ## Current Phase
 
-Cloudflare Workers production QA — local gates PASS; deployment PARTIAL
+Cloudflare deployment — GitHub PASS; owner build-token approval required
+
+## Deployment unblock — GitHub connected (2026-09-14)
+
+- Read the requested checkpoint/readiness and deployment files. No repository
+  audit or application/runtime changes. Existing passing gates reused.
+- GitHub connection PASS: Cloudflare now shows Continue with GitHub, connected
+  account 18me1a0327 and selectable JANASOOCHI. Selected that existing private
+  repository and advanced to Set up your application. No new/public repo.
+- Live creation form configured: project janasoochi, build
+  pnpm build:cloudflare, deploy pnpm deploy:cloudflare, path '.', nonproduction
+  branch builds OFF, Protect with Cloudflare Access OFF. Production branch
+  main must still be independently confirmed after project creation.
+- New blocker is NOT GitHub or vinext: Advanced settings proposes Create new
+  token and says a user API token will be created automatically on deployment.
+  Expanded permission disclosure shows account Settings(read), Workers Scripts
+  (edit), KV/R2/D1/Vectorize/Queues/Pipelines/Containers/Cloudchamber/AI Search
+  (edit), Connectivity Directory(read,bind), all-zone Workers Routes(edit),
+  User Details/Memberships(read). These are broader than this app's bindings.
+- No new token created, existing token selected, or Deploy button clicked.
+  Attempts to inspect the token selector did not expose a verified existing
+  narrower option. OWNER ACTION REQUIRED: explicitly approve this native
+  build token's displayed permissions, or provide/select an appropriately
+  scoped existing deployment token through Cloudflare (never paste its value
+  into chat). Account security access must not expand silently.
+- Both Supabase public build/runtime values still require configuration;
+  Environment PARTIAL. Do not ask owner to click Deploy before environment
+  setup is complete. No secret/service-role/frontend token configured.
+- Deployment BLOCKED at token approval; URL NOT CREATED/CONFIRMED, deployed
+  version/commit/timestamp unavailable. Anonymous/Auth production NOT TESTED;
+  protected/role/Review/Quality/source/PWA statuses remain PARTIAL, based only
+  on earlier local evidence. Mobile NOT VERIFIED; CPU NOT MEASURABLE.
+- Existing TypeScript/lint/build/vinext PASS, web68PASS/1skip, local12/12smoke
+  reused; no repeated build, OCR, install, data mutation or fake production QA.
+- Netlify kept ACTIVE/unchanged; DNS unchanged; INR0. No Access policy, paid
+  service, schema/RLS/adapter/UI/extraction change made.
+- Files changed: this checkpoint and CLOUDFLARE_READINESS only. Save/push these
+  real documentation changes against current private main; no empty commit.
+- NEXT EXACT DEPLOYMENT TASK: obtain owner build-token approval, configure both
+  existing public Supabase variables at build/runtime, verify main, trigger Git
+  deployment and certify actual URL/commit/Auth/roles/Review/Quality/source/PWA
+  and runtime telemetry. Then STOP deployment work. Product next task is
+  Phase2F → tiny private real OCR smoke → human-verified GOLD preparation.
+
+## Automatic deployment continuation (2026-09-14)
+
+- Read checkpoint, readiness, package.json, wrangler.jsonc and
+  vite.cloudflare.config.ts. No repo-wide audit, rewrite or dependency change.
+- Configuration confirmed: pnpm/committed lockfile; documented Node22+
+  (available Node24.19.0); Next16.3.4, vinext1.0.0-beta.9, Wrangler4.131.1;
+  Worker janasoochi, lib/cloudflare/worker.ts, compatibility_date2026-09-13,
+  nodejs_compat, workers_dev=true, assets dist/client. Commands remain
+  pnpm build:cloudflare / pnpm deploy:cloudflare (generated Worker/SSR config).
+- Local Supabase environment inspection printed names/booleans ONLY: expected
+  existing project URL matches; public client key is present; no service-role,
+  API token or secret variable is present. Cloudflare build/runtime variables
+  cannot yet be certified (Environment PARTIAL). No credential was revealed.
+- Cloudflare account is signed in, but current creation screen still shows
+  Make something new / Connect GitHub. No JANASOOCHI repository is selectable.
+  Keyboard activation did not advance; prior accessibility/Playwright attempts
+  also failed. GitHub connection BLOCKED; do not assume the owner's previous
+  approval is usable in this context. Wrangler whoami remains unauthenticated.
+- OWNER ACTION REQUIRED: open the existing Cloudflare Workers creation screen
+  in the owner's normal browser, click Connect GitHub, approve access only to
+  18me1a0327/JANASOOCHI if prompted, and leave the selectable repository step
+  visible. Do not grant all-repository access, create a token, buy Paid or
+  publish a Hello World/static-only Worker as a shortcut.
+- Deployment BLOCKED; Workers URL NOT CREATED/CONFIRMED; deployment commit,
+  ID/version/timestamp unavailable. All production Auth/session/roles/Review/
+  Data Quality/source/PWA QA remains unverified. Mobile NOT VERIFIED;
+  live CPU NOT MEASURABLE. No production success or OCR accuracy claimed.
+- Reused unchanged passing gates from the preceding run: TypeScript/lint,
+  vinext compatibility/build, Next build, web68PASS/1existingOCRskip and
+  built-workerd12/12smoke. Frozen install/new builds deferred until Git
+  connection allows the requested deployment gate; no repeated costly checks.
+- Netlify fallback independently HTTP200/login markup on this continuation,
+  ACTIVE. Money INR0; no DNS/schema/RLS/OCR/source/UI changes.
+- Updated local checkpoint/readiness only; existing pushed checkpoint commit
+  remains 3b36632fc3d5a1ab52e45f987746c41c81c0346f. No new code commit.
+- NEXT EXACT TASK: resolve the visible GitHub connection step, select existing
+  private main/root '.', configure both public Supabase values at build/runtime,
+  trigger native Git deployment, then certify the actual URL/commit and real
+  authenticated production QA. Only afterward return to Phase2F→2G→2H→Phase3.
 
 ## Production QA / owner-requested deployment (2026-09-13)
 

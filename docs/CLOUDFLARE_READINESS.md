@@ -1,5 +1,36 @@
 # Cloudflare Workers migration
 
+## Latest unblock — GitHub PASS, build-token approval required
+
+Cloudflare now exposes 18me1a0327/JANASOOCHI; selected the existing private repo.
+Creation form is configured for janasoochi, pnpm build:cloudflare,
+pnpm deploy:cloudflare, path '.', production-only builds and Access OFF.
+Main branch must be verified after project creation; no deployment submitted.
+
+Native Git build setup proposes automatically creating a user token with
+Workers Scripts plus KV/R2/D1/Vectorize/Queues/Pipelines/Containers/Cloudchamber/
+AI Search edit permissions, Connectivity Directory read/bind, account settings
+read, all-zone Worker routes edit and user details/memberships read. Owner
+approval is required before this broader access is created. No token created
+or value exposed; no verified narrower existing selection was available here.
+Do not click Deploy until this approval and both public Supabase build/runtime
+variables are configured. No new Access policy, Paid plan or schema/RLS change.
+Deployment remains BLOCKED; all production QA remains unverified. See latest
+checkpoint; earlier blocked-GitHub sections below are historical.
+
+## Automatic deployment continuation — 2026-09-14
+
+GitHub connection BLOCKED: signed-in creation screen still stops at Connect
+GitHub, with no selectable JANASOOCHI repository. Keyboard activation also
+did not advance; Wrangler remains unauthenticated. OWNER ACTION REQUIRED at
+this connection step in the normal browser; approve ONLY the private
+18me1a0327/JANASOOCHI repo if prompted. No approval/deployment success assumed.
+Local public Supabase URL/key presence validated without printing values;
+Cloudflare environment remains PARTIAL. No Worker URL/version/commit confirmed.
+Unchanged passing builds/tests reused; no reinstall or repeated expensive gate
+while connection is blocked. Netlify login independently HTTP200, fallback
+ACTIVE, INR0. See the latest checkpoint for exact continuation and QA limits.
+
 Checked 2026-09-13. PARTIAL: builds/local anonymous QA pass. The owner is
 browser-authenticated, but the supplied account has no deployed projects;
 GitHub connection/deployment and signed-in production QA remain pending.
