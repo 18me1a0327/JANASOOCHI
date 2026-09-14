@@ -1,5 +1,43 @@
 # Cloudflare Workers migration
 
+## Live production — 2026-09-14 (PARTIAL)
+
+Owner approved the disclosed native build token. Existing private GitHub
+18me1a0327/JANASOOCHI/main is connected, root '.', vinext and existing
+pnpm build:cloudflare / pnpm deploy:cloudflare retained. Access OFF, no Paid.
+Both public Supabase build/runtime variables stored encrypted; existing
+zlgwpegklxzmwppghvst project retained; no service-role/deployment secrets exposed.
+
+URL: https://janasoochi.anandkalidindi28.workers.dev
+Successful retry build: ca11a8cb-e8b8-4228-80b1-dc18f39bd769
+Version: 5a68e94f-8c76-4451-b49e-ecd79566c6c9
+Deployment timestamp: 2026-09-14T06:01:11Z
+Upload: 2135.59KiB raw / 594.62KiB gzip; startup22ms.
+
+Runtime-variable save raced the first Git deployment and published the initial
+Hello World code. Reproduced production root200 instead of307; deployment
+history confirmed the Add secret placeholder version. Retried unchanged Git
+build after saving variables; --keep-vars retained runtime values. Re-ran
+REAL production smoke: 12/12 PASS (redirects/configured login/no-store,
+anonymous and spoofed-role rejection, source protection, PWA assets, safe404).
+Native Linux frozen install/build/deploy PASS. No code fix/adapter change needed.
+Manual build UI exposes main but no SHA (Empty commit message); remote main
+2692ba913a2176773280582fe9bd96c85d482636 is not independently certified as
+the deployed commit. Verify the next documentation-triggered Git build SHA.
+
+Authenticated production QA remains pending owner sign-in on the live login
+page. Auth/session refresh/logout, Admin/Viewer, Review/Quality data and private
+source/card viewer cannot be called PASS from anonymous/local tests. PWA HTTP
+assets PASS; actual registration/offline/auth-cache/mobile install NOT VERIFIED.
+
+Free-tier RISK: actual initial telemetry17 invocations/0 errors, active-version
+medianCPU106.3ms; mixed-version CPU P50=3.66/P90=98.41/P99=102. Do not confuse
+wall-clock latency/startup with per-request CPU. Profile warm authenticated
+routes before accepting Free compatibility; do not automatically upgrade.
+Observability Disabled, so Worker runtime logs have not been inspected.
+Netlify remains ACTIVE, DNS unchanged, INR0. OVERALL PARTIAL.
+See latest CODEX_CHECKPOINT for next exact task; older blockers below historical.
+
 ## Latest unblock — GitHub PASS, build-token approval required
 
 Cloudflare now exposes 18me1a0327/JANASOOCHI; selected the existing private repo.

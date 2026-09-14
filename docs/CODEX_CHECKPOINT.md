@@ -2,7 +2,68 @@
 
 ## Current Phase
 
-Cloudflare deployment — GitHub PASS; owner build-token approval required
+Cloudflare production deployment — reachable; authenticated QA and CPU risk pending
+
+## Live Workers deployment — 2026-09-14
+
+- Owner explicitly approved the disclosed native build-token access. Created
+  janasoochi using the existing private 18me1a0327/JANASOOCHI repository,
+  main/root '.', vinext, pnpm build:cloudflare / pnpm deploy:cloudflare.
+  Nonproduction builds and Cloudflare Access remain OFF. No paid plan enabled.
+- Both existing public Supabase values configured as encrypted build and
+  runtime variables. Expected project zlgwpegklxzmwppghvst retained. No
+  service-role key, token value, source PDF or voter dataset exposed/committed.
+- Native frozen-lockfile Linux install/build/deploy PASS. Cloudflare uses
+  pnpm10.11.1 and Node24.18.0. Existing application code is unchanged.
+- First build 9f4ad596-d17b-4fdb-90b9-4f226beb4f09 succeeded, but saving runtime
+  variables during that build deployed the initial Hello World version over
+  the application. Reproduced: all routes HTTP200 plain Hello world; production
+  smoke failed root redirect assertion (200 != 307). Deployment history showed
+  a later dashboard Add secret placeholder version. Smallest fix: retry the
+  unchanged Git build AFTER variables were saved; --keep-vars preserves them.
+- Retried build ca11a8cb-e8b8-4228-80b1-dc18f39bd769 PASS, deployed at
+  2026-09-14T06:01:11Z, version 5a68e94f-8c76-4451-b49e-ecd79566c6c9.
+  Total upload 2135.59KiB / gzip594.62KiB; Worker startup22ms.
+- Confirmed live URL: https://janasoochi.anandkalidindi28.workers.dev .
+  Git main was 2692ba913a2176773280582fe9bd96c85d482636 before both builds;
+  manual-build UI exposes main but no commit association (Empty commit message).
+  Do not claim an independently certified deployment SHA from that alone.
+- REAL production command: node scripts/cloudflare-smoke.mjs
+  https://janasoochi.anandkalidindi28.workers.dev — 12/12 PASS after retry.
+  Root307/search; configured login200/no-store; anonymous and role=admin spoof
+  blocked on search/documents/review/data-quality/administration/profile/source;
+  manifest/icons/sw/offline assets load; unknown route safe404.
+- Existing unchanged gates reused: TypeScript/lint/Next build/vinext build PASS,
+  web68PASS/1existingOCRskip and local12/12smoke. No expensive repeated OCR/build.
+- Production login opens normally. Owner asked to sign in directly with an
+  existing Admin account; no authorized production session/password available
+  to the agent yet. Auth login/refresh/logout, authenticated SSR, Viewer/Admin,
+  Review/Quality data and private source viewing remain PARTIAL/NOT TESTED.
+- PWA production manifest/icons/service worker/offline HTML HTTP checks PASS;
+  unchanged SW source caches only the explicit safe shell. Real registration,
+  offline behavior, authenticated cache boundary and physical mobile install
+  are not yet independently verified (PWA PARTIAL; mobile NOT VERIFIED).
+- Actual dashboard telemetry: 17 invocations across versions, zero invocation
+  errors; active 5a68e94f medianCPU106.3ms. Mixed-version CPU P50=3.66,
+  P90=98.41, P99=102; wall-time percentiles tracked separately. Small initial
+  sample includes placeholder requests. FREE-TIER RISK: high active-version
+  CPU is not acceptable evidence of free-tier safety; obtain per-route warm
+  authenticated metrics before accepting migration. No Paid upgrade made.
+- Workers Observability explicitly Disabled. No runtime exception log stream
+  inspected; zero aggregate errors is not equivalent to inspected Worker logs.
+  Dashboard console accessibility warnings are not application runtime errors.
+- Netlify fallback ACTIVE/unchanged; DNS unchanged; INR0. No UI, schema/RLS,
+  adapter, extraction infrastructure or voter/source-data mutation.
+- Only changed files: this checkpoint and CLOUDFLARE_READINESS. Push focused
+  docs and verify the resulting native Git-triggered build's SHA/version; do
+  not create an empty commit or rebuild application modules.
+- OVERALL PARTIAL. NEXT EXACT TASK: complete owner-assisted production Admin
+  and Viewer/session/source QA and investigate measured per-route CPU on Free.
+  After Cloudflare QA genuinely passes, STOP deployment work; product task
+  Phase2F → tiny private real OCR smoke → human-verified GOLD preparation.
+  Urdu remains blocked until valid source PDFs; no accuracy/GOLD fabricated.
+
+Earlier sections below are historical snapshots, not the current status.
 
 ## Deployment unblock — GitHub connected (2026-09-14)
 
