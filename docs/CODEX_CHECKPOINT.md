@@ -2,7 +2,72 @@
 
 ## Current Phase
 
-Cloudflare production deployment — reachable; authenticated QA and CPU risk pending
+Cloudflare production QA only — PARTIAL; Viewer session and Free-tier safety pending
+
+## Low-usage production QA — 2026-09-14 21:54 IST
+
+- Confirmed live version12c5094a at100% traffic, linked to existing main commit
+  7705d062509cda7007ef3cdb8b12d8b5a015cc01. No deployment/app changes required.
+- Reopened Search in a fresh browser tab: existing Admin session persisted.
+  Protected Search refresh retained server-rendered Admin authorization.
+  Prior owner-assisted login/logout/re-login evidence is retained, not rerun.
+  FORCED EXPIRY: NOT VERIFIED; no artificial expiry test performed.
+- Viewer production: NOT TESTED. Available session is Admin, not Viewer.
+  Owner must sign out and use the existing Viewer account on the live site;
+  never provide passwords in chat. Do not create/reset users or infer Viewer
+  RLS/mutation PASS from local tests or an Admin session.
+- Lightweight REAL HTTP checks: manifest, sw.js, offline.html and both icons
+  PASS (5/5). PNG IHDR dimensions exactly192x192 and512x512; both maskable.
+  Manifest standalone/start_url=/search/default resolved scope=/ over HTTPS.
+  Deployed SW matches local source after line-ending normalization. Its only
+  cached URLs are the public offline shell/manifest/icons; navigation is
+  network-only with offline fallback, API/private PDFs/cross-origin Supabase
+  data are not cached. Actual registration/offline-device behavior and physical
+  mobile installation remain NOT VERIFIED; PWA overall PARTIAL.
+- Netlify login HTTP200 and configured login-title: PASS; fallback ACTIVE.
+- Current dashboard:293 invocations across versions,602 subrequests,0 errors.
+  Active12c5094a:55 invocations, median CPU24.67ms, error rate0%, traffic100%.
+  Exceeded CPU Time Limits0. Current-version evidence supersedes initially
+  empty metrics and retains FREE-TIER RISK, not PASS or proven failure.
+  Documented Workers Free10ms/HTTP request with occasional isolate flexibility:
+  https://developers.cloudflare.com/workers/platform/limits/ . CPU is not
+  wall time. No synthetic load, paid upgrade or speculative adapter change.
+  Worker Logs/Traces currently Disabled after Git redeploy; aggregate metrics
+  are available, but correlated runtime-log inspection remains unverified.
+- Reused earlier verified Admin, paginated Review/read/editor-cancel, Data
+  Quality and private source/page/bbox evidence. Review save/verify deliberately
+  untested against real data. Auth PARTIAL for unexercised refresh/expiry paths;
+  Protected routes PARTIAL until real Viewer negative authorization is tested.
+- No code/schema/RLS/source edits, full build/test reruns, OCR or paid work.
+  Only these two QA documents updated. Money INR0. OVERALL PARTIAL.
+- NEXT EXACT TASK: owner-assisted Viewer sign-in, then Search/Documents/source
+  reads and direct Administration/admin-mutation denial checks without voter
+  writes. Separately correlate/profile normal SSR CPU before Free-tier acceptance.
+  STOP here; do not start Phase2F/G/H. After acceptance/weekly reset, tiny private
+  OCR smoke instructions only: select one existing EN card and corresponding TE
+  Part+Serial card, preserve raw/normalized output and source page/bbox privately,
+  obtain human GOLD values, then measure; no full roll and no claimed accuracy.
+  Urdu remains BLOCKED until valid official Urdu PDFs are supplied.
+
+## Final deployment receipt — 2026-09-14T16:07:17Z
+
+- Focused two-document checkpoint commit7705d062509cda7007ef3cdb8b12d8b5a015cc01
+  pushed to private main. Git diff verified exactly CODEX_CHECKPOINT and
+  CLOUDFLARE_READINESS; no application code, PDFs, datasets or credentials.
+- Native build5f262dbc-68de-4d1c-a734-42c4feb9ad76 confirmed Success (58s)
+  and exact Git SHA7705d06. Production version12c5094a-7a9d-4b36-b860-9c72109f704a,
+  deployed2026-09-14T16:07:17Z at the existing confirmed Workers URL.
+  Upload2135.59KiB / gzip594.07KiB; startup31ms. Supabase variables retained.
+- AFTER final success, REAL HTTP smoke again12/12PASS. No false conversion
+  of local tests into production results. Final version CPU initially No data;
+  prior version's measured16.01ms CPU retains Free-tier RISK, not PASS.
+- Owner repeatedly returned as Admin, not Viewer. Logout and Admin re-login
+  verified; real Viewer authorization remains pending owner-assisted sign-in.
+  Current task is PARTIAL, not complete. No Paid/DNS/fallback change made.
+- This final receipt is local only; preceding QA checkpoint was pushed in the
+  deployed7705d06 commit. Avoid a documentation-only recursive redeploy merely
+  to embed its own resulting deployment receipt. Capture it in the next focused
+  commit when Viewer/runtime QA actually progresses.
 
 ## Production QA continuation — 2026-09-14
 

@@ -1,5 +1,52 @@
 # Cloudflare Workers migration
 
+## Low-usage QA receipt — 2026-09-14 21:54 IST (PARTIAL)
+
+Live existing Worker https://janasoochi.anandkalidindi28.workers.dev confirmed;
+version12c5094a at100%, Git main7705d062509cda7007ef3cdb8b12d8b5a015cc01.
+Deployment/environment/build retained PASS; vinext and Netlify preserved.
+Fresh Search tab and protected refresh retained the existing Admin session.
+Prior real Admin login/logout/re-login checks reused. Viewer NOT TESTED because
+no Viewer session is available. Owner must sign out/sign in as existing Viewer
+on the site; never paste credentials. No user creation/reset or data mutation.
+Forced expiry NOT VERIFIED; Supabase Auth/protected role matrix remain PARTIAL.
+
+Five lightweight production PWA checks PASS: manifest, exact safe-shell SW,
+offline HTML,192/512 PNG assets (actual dimensions checked), maskable purposes,
+HTTPS/start_url=/search/default scope=/. Only public shell/manifest/icons cached;
+authenticated navigation, API, private PDFs and Supabase data not cached.
+Actual SW registration/device-offline behavior/mobile install NOT VERIFIED;
+PWA PARTIAL. Netlify configured login independently HTTP200: ACTIVE.
+
+Current dashboard293 invocations/602 subrequests/0 aggregate errors. Active
+12c5094a55 invocations/medianCPU24.67ms/error rate0%; CPU-limit terminations0.
+Free-tier RISK persists against documented10ms/request, not confirmed failure:
+https://developers.cloudflare.com/workers/platform/limits/ . No load generation,
+wall-clock-as-CPU claim, Paid purchase or adapter switch. Logs/Traces currently
+Disabled after redeploy; correlated runtime logs not verified. CPU route-specific
+profiling remains deferred, not falsely passed from aggregate zero errors.
+
+Review PARTIAL (reads/pagination/filters/editor-cancel verified earlier, no real
+save/verify); Data Quality/source viewer PASS from retained real production
+evidence. No full checks rerun and no application/schema/RLS/OCR changes.
+Only checkpoint/readiness docs changed; INR0. OVERALL PARTIAL. Next exact task:
+owner-assisted Viewer read/negative permission QA, then normal SSR CPU evidence.
+STOP; after weekly reset and acceptance only prepare tiny EN/TE card smoke/GOLD
+evidence; no OCR execution in this run. Urdu blocked pending valid official PDFs.
+
+## Final production receipt (local) — 2026-09-14T16:07:17Z
+
+Deployed checkpoint commit7705d062509cda7007ef3cdb8b12d8b5a015cc01.
+Native Git build5f262dbc-68de-4d1c-a734-42c4feb9ad76 Success, 58s.
+Production version12c5094a-7a9d-4b36-b860-9c72109f704a.
+URL https://janasoochi.anandkalidindi28.workers.dev ; final HTTP smoke12/12PASS.
+Upload2135.59KiB / gzip594.07KiB, startup31ms. Only two QA documents changed.
+New-version CPU initially No data; previous measured16.01ms remains RISK.
+Admin login/logout/re-login verified; Viewer session still pending. OVERALL
+PARTIAL. Netlify ACTIVE, INR0, no DNS/Paid/schema/source-data change. Receipt
+local only to avoid a self-referential documentation redeploy loop; pushed QA
+checkpoint is the deployed7705d06. Next focused QA commit can carry this receipt.
+
 ## Latest real QA — 2026-09-14 (PARTIAL)
 
 Exact Git-linked production commit da045b21c946f6dd638eb53776738379f7f75ddf;
