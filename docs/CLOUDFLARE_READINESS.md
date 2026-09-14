@@ -1,5 +1,34 @@
 # Cloudflare Workers migration
 
+## Latest real QA — 2026-09-14 (PARTIAL)
+
+Exact Git-linked production commit da045b21c946f6dd638eb53776738379f7f75ddf;
+build6f4accd3-32de-4b60-a7fb-d2919383c3f3 Success; active version
+9b99f888-417c-4139-81aa-3acb20440331 at100% traffic. Actual URL unchanged.
+REAL HTTP smoke12/12PASS; service-worker safe-shell source matches production.
+Fresh TypeScript/lint PASS, web68PASS/1existingOCRskip, require-admin5/5PASS.
+Native vinext build/deploy PASS; Next production build previously PASS with
+unchanged application code. No UI/runtime/schema/RLS/extraction rewrite.
+
+Owner-assisted Admin login/SSR/direct refresh, logout/protected rejection,
+Admin login again, uploaded-record Search (Part+Serial and house alone),
+Documents, paginated Review/search, correction modal/cancel, Data Quality
+Part/language/view filters and reconciliation pagination, Administration
+modal/cancel, private uploaded PDF paging/zoom and exact voter-card highlight
+verified. No source/voter edits, OCR, archive, exports or role changes executed.
+Viewer session still pending owner sign-in; local tests are not production
+Viewer evidence. Forced token-expiry renewal is not separately verified.
+
+Intermittent immediate browser load warnings later rendered successfully;
+no correlated runtime stack captured. Live-only Logs enabled (persist false),
+but observed stream remained empty, so full log inspection is unverified.
+Telemetry75invocations/0 aggregate errors; active medianCPU16.01ms, wall117ms.
+Free10ms CPU allowance has burst flexibility, not sustained safety:
+https://developers.cloudflare.com/workers/platform/limits/ . Free-tier RISK.
+Do not upgrade or switch adapters speculatively. Netlify independently login200,
+ACTIVE; DNS unchanged; INR0. PWA assets/safe-shell PASS, mobile/offline install
+NOT VERIFIED. OVERALL PARTIAL. See latest checkpoint for exact remaining task.
+
 ## Live production — 2026-09-14 (PARTIAL)
 
 Owner approved the disclosed native build token. Existing private GitHub

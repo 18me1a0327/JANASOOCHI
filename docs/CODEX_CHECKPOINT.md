@@ -4,6 +4,74 @@
 
 Cloudflare production deployment — reachable; authenticated QA and CPU risk pending
 
+## Production QA continuation — 2026-09-14
+
+- Git-triggered production build 6f4accd3-32de-4b60-a7fb-d2919383c3f3 succeeded
+  for da045b21c946f6dd638eb53776738379f7f75ddf. Cloudflare links the exact Git
+  commit to active version 9b99f888-417c-4139-81aa-3acb20440331, 100% traffic.
+  Existing vinext/full-stack runtime and private repository/main retained.
+- REAL Worker smoke re-run: 12/12 PASS. Production sw.js byte-equivalent to
+  the local safe-shell source after line-ending normalization. Netlify login
+  independently HTTP200 with login-title; fallback ACTIVE/unchanged.
+- Supabase Auth settings HTTP200 using the existing public client credential;
+  email/password enabled, Google disabled. No Auth configuration changed.
+- Owner signed in directly: server-rendered Search/profile authorization shows
+  Admin. Direct protected navigation/refresh retained the session. Sign out
+  then direct Administration correctly redirected to Login. Owner subsequently
+  signed in as Admin again, proving login-after-logout. Forced token-expiry
+  renewal/cookie-attribute inspection has not been separately exercised.
+- Real Search: Part228 AND Serial1 returned one uploaded English record.
+  Clear filters, House001 alone across all supported parts returned two rows
+  and "Voters listed under House Number 001". No family inference or data edit.
+- Documents loads eight saved EN/TE sources and their real page/record/review
+  states. PDF upload/resume/archive were NOT executed (deployment-only QA;
+  no full OCR or voter/source mutations). Refresh/direct access exercised.
+- Review reads paginated enriched rows, moves to page2, filters Part227 and
+  a no-match query, and displays a safe empty result. Native Clear restores
+  the queue. Correction editor opened and closed; save/verify not executed
+  against real voter data. Historical giant IN bug did not recur.
+- Private source: Documents opened uploaded EN Part227 PDF, physical1/40,
+  Next selected page2 and zoom110→125%. Review Source opened uploaded TE
+  Part227 physical39/40 with the linked voter-card highlight. Exact source
+  URL includes voter reference; anonymous source access remains rejected.
+- Data Quality real Supabase metrics render; no fabricated GOLD accuracy.
+  Part228 + English + Revision view produced Expected973/Extracted973 and
+  reconciliation drill-down moved page1→page2 of74. Admin Administration
+  loads existing authorized users; create-user dialog opened/cancelled without
+  changing credentials. Exports and role changes NOT executed.
+- Some immediate browser navigation/refresh observations showed "This page
+  couldn't load" before later successful rendering. No application stack or
+  correlated Worker exception captured; do not invent a code root cause or
+  label these resolved. Native browser controls plus settled observations
+  proved the working routes; preserve this intermittent reliability caveat.
+- Live-only diagnostic Logs enabled through Cloudflare UI (invocation_logs
+  true, persist false), without paid service or application/schema change.
+  Live stream connected but received no events during observed requests;
+  complete runtime-log inspection remains UNVERIFIED. No log data exported.
+- Dashboard telemetry75 invocations, zero aggregate invocation errors;
+  active9b99f888 medianCPU16.01ms, medianwall117ms, Supabase101 subrequests.
+  Earlier active5a68 median12.04ms, initial106.3ms. CPU and wall time are NOT
+  equivalent. Workers Free documented allowance10ms/request, with occasional
+  burst flexibility: https://developers.cloudflare.com/workers/platform/limits/ .
+  FREE-TIER RISK persists; zero errors does not prove sustained compatibility.
+  Do not upgrade automatically or change adapters without a verified blocker.
+- Fresh final local gate: tsc --noEmit PASS; eslint . PASS; vitest run68PASS /
+  1existingOCRskip (9 passing test files / 1 skipped). Focused require-admin
+  suite5/5PASS. Native vinext build/deploy PASS; normal Next production build
+  previously PASS with unchanged application source. No expensive re-OCR.
+- Viewer account exists in Administration, but owner-assisted Viewer session
+  still not supplied. Current sign-in is Admin again. Viewer direct-route,
+  server-side role and private-source permissions remain PARTIAL despite the
+  five passing local authorization tests. Owner asked to sign in as Viewer
+  on the live site (never paste credentials). Do not create/reset a test user.
+- PWA assets/safe-shell contract PASS; physical mobile installation/offline
+  browser cache inspection remain NOT VERIFIED. No sensitive offline cache
+  added. Money INR0; Netlify ACTIVE; DNS unchanged; no voter/source writes.
+- OVERALL PARTIAL. Changed files remain this checkpoint and readiness only.
+  NEXT EXACT TASK: obtain Viewer session, finish real permission/session QA,
+  correlate intermittent loads with Worker logs and profile Free-tier SSR CPU.
+  Only after acceptance: Phase2F → tiny private OCR smoke → human GOLD.
+
 ## Live Workers deployment — 2026-09-14
 
 - Owner explicitly approved the disclosed native build-token access. Created
