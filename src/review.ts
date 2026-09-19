@@ -52,6 +52,27 @@ export type ReviewCursor = {
   issueId: number
 }
 
+const CORRECTABLE_FIELDS = [
+  'original_name',
+  'original_relation_name',
+  'original_house_number',
+  'age',
+  'gender',
+  'epic_number',
+] as const
+
+export function reviewFieldsChanged(row: ReviewPageRow, fields: Record<string, string>) {
+  const original: Record<(typeof CORRECTABLE_FIELDS)[number], unknown> = {
+    original_name: row.corrected_value?.original_name ?? row.voter_name,
+    original_relation_name: row.corrected_value?.original_relation_name ?? row.relation_name,
+    original_house_number: row.corrected_value?.original_house_number ?? row.house_number,
+    age: row.corrected_value?.age ?? row.age,
+    gender: row.corrected_value?.gender ?? row.gender,
+    epic_number: row.corrected_value?.epic_number ?? row.epic_number,
+  }
+  return CORRECTABLE_FIELDS.some((field) => String(fields[field] ?? '').trim() !== String(original[field] ?? '').trim())
+}
+
 export interface ReviewQueryError {
   kind: 'session' | 'permission' | 'query' | 'network' | 'unknown'
   message: string

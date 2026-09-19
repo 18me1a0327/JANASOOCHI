@@ -11,7 +11,7 @@ import { MetricCard, Panel } from './ui-shell'
 
 type Summary = QualitySummaryInput
 type PartQuality = PartLanguageQualityInput
-type QualityView = 'overview' | 'coverage' | 'issues' | 'fields' | 'revision'
+type QualityView = 'overview' | 'extraction' | 'accuracy' | 'languages' | 'reconciliation' | 'revisions'
 
 type RpcResult = { data: unknown; error: { message: string } | null }
 const PART_TOTALS: Record<number, number> = { 227: 1014, 228: 973, 229: 888, 230: 579 }
@@ -102,22 +102,27 @@ export function DataQualityDashboard() {
   const extracted = count(summary?.extracted_source_records)
   const verified = count(overallSummary?.verified_logical_voters)
   const nullTotal = scopedAnalytics.missingFieldRates.reduce((total, row) => total + row.value, 0)
-  const showCoverage = qualityView === 'overview' || qualityView === 'coverage'
-  const showIssues = qualityView === 'overview' || qualityView === 'issues'
-  const showFields = qualityView === 'overview' || qualityView === 'fields'
+  const showCoverage = qualityView === 'overview' || qualityView === 'languages'
+  const showIssues = qualityView === 'overview' || qualityView === 'extraction'
+  const showFields = qualityView === 'overview' || qualityView === 'accuracy'
+  const extractionCoverage = expected ? Math.round(Math.min(100, count(overallSummary?.active_logical_voters) / expected * 1000)) / 10 : 0
+  const languageCoverage = analytics.sourceCoverage.length ? Math.min(...analytics.sourceCoverage.map((row) => row.percent)) : 0
 
   return (
     <>
+      <nav className="insights-tabs" aria-label="Data insights sections">{(['overview', 'extraction', 'accuracy', 'languages', 'reconciliation', 'revisions'] as QualityView[]).map((view) => <button key={view} type="button" className={qualityView === view ? 'active' : ''} onClick={() => setQualityView(view)}>{view[0].toUpperCase() + view.slice(1)}</button>)}</nav>
       <div className="quality-toolbar">
-        <div className="quality-filter"><Filter aria-hidden="true" /><select aria-label={t('part')} value={part} onChange={(event) => setPart(event.target.value)}><option value="">{t('allSupportedParts')}</option><option>227</option><option>228</option><option>229</option><option>230</option></select><select aria-label={t('sourceLanguage')} value={sourceLanguage} onChange={(event) => setSourceLanguage(event.target.value)}><option value="all">{t('allLanguages')}</option><option value="en">{t('englishSource')}</option><option value="te">{t('teluguSource')}</option><option value="ur">{t('urduSource')}</option></select><select aria-label={t('qualityFilter')} value={qualityView} onChange={(event) => setQualityView(event.target.value as QualityView)}><option value="overview">{copy.allViews}</option><option value="coverage">{copy.coverageView}</option><option value="issues">{copy.issuesView}</option><option value="fields">{copy.fieldsView}</option><option value="revision">{revisionViewLabel}</option></select></div>
+        <div className="quality-filter"><Filter aria-hidden="true" /><select aria-label="Revision" disabled><option>Current revision</option></select><select aria-label={t('part')} value={part} onChange={(event) => setPart(event.target.value)}><option value="">{t('allSupportedParts')}</option><option>227</option><option>228</option><option>229</option><option>230</option></select><select aria-label={t('sourceLanguage')} value={sourceLanguage} onChange={(event) => setSourceLanguage(event.target.value)}><option value="all">{t('allLanguages')}</option><option value="en">{t('englishSource')}</option><option value="te">{t('teluguSource')}</option><option value="ur">{t('urduSource')}</option></select></div>
         <button className="button secondary small" type="button" onClick={() => void load()} disabled={busy}>{busy ? <LoaderCircle className="spin" aria-hidden="true" /> : <RefreshCw aria-hidden="true" />}{copy.reload}</button>
       </div>
       {error && <p className="error-notice" role="alert">{error}</p>}
       <div className="metric-grid">
-        <MetricCard label={t('expected')} value={expected.toLocaleString('en-IN')} note={t('expectedSourceCount')} tone="positive" />
-        <MetricCard label={t('extracted')} value={busy ? '—' : number(extracted)} note={sourceLanguage === 'all' ? t('allLanguages') : sourceLanguage.toUpperCase()} />
+        <MetricCard label="Total logical voters" value={busy ? '—' : number(overallSummary?.active_logical_voters)} note={`${expected.toLocaleString('en-IN')} expected`} tone={count(overallSummary?.active_logical_voters) === expected ? 'positive' : 'warning'} />
         <MetricCard label={t('verifiedMetric')} value={busy ? '—' : number(verified)} note={`${number(overallSummary?.unverified_logical_voters)} ${copy.unverified}`} />
-        <MetricCard label={t('reconciliationConflicts')} value={busy ? '—' : number(summary?.reconciliation_conflicts)} note={copy.unlinked} tone={Number(summary?.reconciliation_conflicts ?? 0) ? 'warning' : 'positive'} />
+        <MetricCard label="Needs review" value={busy ? '—' : number(overallSummary?.needs_review_issues)} note="Open structured Review issues" tone={count(overallSummary?.needs_review_issues) ? 'warning' : 'positive'} />
+        <MetricCard label="Unresolved critical" value={busy ? '—' : number(overallSummary?.critical_issues)} note="Golden Revision blocker" tone={count(overallSummary?.critical_issues) ? 'warning' : 'positive'} />
+        <MetricCard label="Extraction coverage" value={busy ? '—' : `${extractionCoverage}%`} note={`${number(overallSummary?.active_logical_voters)} / ${expected.toLocaleString('en-IN')} logical slots`} />
+        <MetricCard label="Language coverage" value={busy ? '—' : `${languageCoverage}%`} note="Minimum of EN and TE linked coverage" />
       </div>
       {!busy && <section className={`quality-readiness ${analytics.goldenRevisionBlockers.length ? 'blocked' : 'ready'}`} role="status">
         {analytics.goldenRevisionBlockers.length ? <ShieldAlert aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
@@ -166,7 +171,9 @@ export function DataQualityDashboard() {
         </Panel>
         <Panel title={copy.ocrTitle}><div className="quality-evidence-note"><BarChart3 aria-hidden="true" /><p>{copy.ocrUnavailable}</p></div></Panel>
       </div>}
-      {(qualityView === 'overview' || qualityView === 'revision') && <ReconciliationDrilldown part={part} />}
+      {qualityView === 'extraction' && <Panel title="Extraction pipeline" description="Live database counts; no OCR accuracy is inferred."><div className="quality-bars"><QualityBarRow label="Source records extracted" value={number(extracted)} percent={100} /><QualityBarRow label="Cards extracted / detected" value={`${number(summary?.extracted_voter_cards)} / ${number(summary?.expected_voter_cards)}`} percent={Number(summary?.expected_voter_cards) ? Math.round(Number(summary?.extracted_voter_cards) / Number(summary?.expected_voter_cards) * 1000) / 10 : 0} /><QualityBarRow label="Source records reconciled" value={number(summary?.linked_source_records)} percent={Number(extracted) ? Math.round(Number(summary?.linked_source_records) / Number(extracted) * 1000) / 10 : 0} /><QualityBarRow label="Verified logical voters" value={number(verified)} percent={expected ? Math.round(verified / expected * 1000) / 10 : 0} /></div></Panel>}
+      {(qualityView === 'overview' || qualityView === 'reconciliation') && <ReconciliationDrilldown part={part} />}
+      {qualityView === 'revisions' && <Panel title={revisionViewLabel} description="Added, removed, changed and unchanged counts require two valid revisions."><div className="quality-evidence-note"><CircleDashed aria-hidden="true" /><p>Revision comparison will be available when another electoral roll revision is imported.</p></div></Panel>}
     </>
   )
 }

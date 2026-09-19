@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewPageOffset } from './review'
+import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewFieldsChanged, reviewPageOffset } from './review'
 import type { ReviewPageRow } from './review'
 
 describe('review pagination', () => {
@@ -33,6 +33,22 @@ describe('review error messages', () => {
     expect(classifyReviewError({ code: '42501', message: 'permission denied' }).kind).toBe('permission')
     expect(classifyReviewError({ status: 400, code: 'PGRST100' }).kind).toBe('query')
     expect(classifyReviewError(new TypeError('Failed to fetch')).kind).toBe('network')
+  })
+})
+
+describe('review correction validation', () => {
+  const row = {
+    voter_name: 'Lakshmi', relation_name: 'Rao', house_number: '1-25',
+    age: 48, gender: 'Female', epic_number: 'ABC1234567', corrected_value: null,
+  } as ReviewPageRow
+  const unchanged = { original_name: 'Lakshmi', original_relation_name: 'Rao', original_house_number: '1-25', age: '48', gender: 'Female', epic_number: 'ABC1234567' }
+
+  it('does not require a correction for unchanged verification fields', () => {
+    expect(reviewFieldsChanged(row, unchanged)).toBe(false)
+  })
+
+  it('detects a real field correction', () => {
+    expect(reviewFieldsChanged(row, { ...unchanged, original_name: 'Lakshmi Devi' })).toBe(true)
   })
 })
 

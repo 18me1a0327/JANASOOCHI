@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { href: "/search", label: "navSearch" as TranslationKey, icon: Search, adminOnly: false },
   { href: "/documents", label: "navDocuments" as TranslationKey, icon: Files, adminOnly: false },
   { href: "/review", label: "navReview" as TranslationKey, icon: FileSearch, adminOnly: true },
-  { href: "/data-quality", label: "navDataQuality" as TranslationKey, icon: BarChart3, adminOnly: true },
+  { href: "/data-insights", label: "navDataQuality" as TranslationKey, icon: BarChart3, adminOnly: true },
   { href: "/administration", label: "navAdministration" as TranslationKey, icon: Users, adminOnly: true },
 ] as const;
 
@@ -154,3 +154,4 @@ export function AppShell({ children, role, email }: Readonly<{ children: ReactNo
     </div>
   );
 }
+

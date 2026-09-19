@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 
 import { invalidateDataCache } from './data'
 import { supabase } from './lib'
-import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewErrorContext } from './review'
+import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewErrorContext, reviewFieldsChanged } from './review'
 import type { ReviewCategory, ReviewCursor, ReviewPageRow } from './review'
 
 type Lang = 'en' | 'te' | 'ur'
@@ -123,19 +123,26 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
 
   async function save(verified: boolean) {
     if (!edit?.voter_id) return
-    if (!reason.trim()) { setError(copy.reasonRequired); return }
+    const changed = reviewFieldsChanged(edit, fields)
+    if (changed && !reason.trim()) { setError(copy.reasonRequired); return }
+    if (!changed && !verified) return
     setBusy(true); setError('')
     try {
-      const response = await supabase.rpc('save_review_correction_v1' as never, {
-        p_issue_id: edit.issue_id,
-        p_corrected_value: fields,
-        p_mark_verified: verified,
-        p_reason: reason.trim(),
-      } as never) as { error: unknown }
+      const response = changed
+        ? await supabase.rpc('save_review_correction_v1' as never, {
+            p_issue_id: edit.issue_id,
+            p_corrected_value: fields,
+            p_mark_verified: verified,
+            p_reason: reason.trim(),
+          } as never) as { error: unknown }
+        : await supabase.rpc('verify_review_issue_v1' as never, {
+            p_issue_id: edit.issue_id,
+          } as never) as { error: unknown }
       if (response.error) throw response.error
       invalidateDataCache()
       setEdit(null)
       resetQueue()
+      await load()
     } catch (saveError) {
       const classified = classifyReviewError(saveError)
       console.error('Review correction failed', reviewErrorContext(saveError, { issueId: edit.issue_id, voterId: edit.voter_id, verified }))
