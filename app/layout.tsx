@@ -15,10 +15,10 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/janasoochi-mark-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/janasoochi-mark-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/janasoochi-logo-2026-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/janasoochi-logo-2026-512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/janasoochi-mark-192.png", sizes: "192x192" }],
+    apple: [{ url: "/janasoochi-logo-2026-192.png", sizes: "192x192" }],
   },
   appleWebApp: {
     capable: true,
@@ -45,3 +45,4 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     </html>
   );
 }
+

@@ -67,7 +67,7 @@ export function AppShell({ children, role, email }: Readonly<{ children: ReactNo
 
       <aside className={`side-navigation${mobileMenuOpen ? " is-open" : ""}`} aria-label="Primary navigation">
         <Link className="side-brand" href="/search">
-          <img src="/janasoochi-mark-512.png" width="48" height="48" alt="" />
+          <img src="/janasoochi-logo-2026-512.png" width="48" height="48" alt="" />
           <span>
             <b>{t("brandNative")}</b>
             <strong>{t("brandName")}</strong>
@@ -122,7 +122,7 @@ export function AppShell({ children, role, email }: Readonly<{ children: ReactNo
             {mobileMenuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
           </button>
           <Link className="mobile-brand" href="/search" aria-label={`${t("brandNative")} ${t("brandName")}`}>
-            <img src="/janasoochi-mark-512.png" width="40" height="40" alt="" />
+            <img src="/janasoochi-logo-2026-512.png" width="40" height="40" alt="" />
           </Link>
           <div className="route-context">
             <activeItem.icon aria-hidden="true" />
@@ -157,3 +157,4 @@ export function AppShell({ children, role, email }: Readonly<{ children: ReactNo
     </div>
   );
 }
+

@@ -1,5 +1,5 @@
-const CACHE = 'janasoochi-safe-shell-v3'
-const SHELL = ['/offline.html', '/manifest.webmanifest', '/janasoochi-mark-192.png', '/janasoochi-mark-512.png']
+const CACHE = 'janasoochi-safe-shell-v4'
+const SHELL = ['/offline.html', '/manifest.webmanifest', '/janasoochi-logo-2026-192.png', '/janasoochi-logo-2026-512.png']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)))
@@ -27,3 +27,4 @@ self.addEventListener('fetch', (event) => {
   if (!SHELL.includes(url.pathname)) return
   event.respondWith(caches.match(request).then((cached) => cached || fetch(request)))
 })
+

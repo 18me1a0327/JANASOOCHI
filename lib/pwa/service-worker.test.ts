@@ -22,7 +22,7 @@ describe('PWA sensitive-data cache boundary', () => {
     let pending: Promise<unknown> | undefined
     w.listeners.install({ waitUntil: (promise: Promise<unknown>) => { pending = promise } })
     await pending
-    expect(Array.from(w.addAll.mock.calls[0][0])).toEqual(['/offline.html', '/manifest.webmanifest', '/janasoochi-mark-192.png', '/janasoochi-mark-512.png'])
+    expect(Array.from(w.addAll.mock.calls[0][0])).toEqual(['/offline.html', '/manifest.webmanifest', '/janasoochi-logo-2026-192.png', '/janasoochi-logo-2026-512.png'])
   })
 
   it('never intercepts API, private PDF, export, cross-origin or mutation requests', () => {
