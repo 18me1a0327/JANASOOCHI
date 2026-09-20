@@ -2,7 +2,61 @@
 
 ## Current Phase
 
-Cloudflare production QA only — PARTIAL; Viewer session and Free-tier safety pending
+Consolidated production completion — PARTIAL; permanent documents and Data Insights pass, custom domain and evidence-chain work remain
+
+## Consolidated production completion — 2026-09-20
+
+- P0 document persistence PASS on the existing architecture: the private
+  `voter-pdfs` Supabase Storage bucket contains 8 objects and `uploaded_pdfs`
+  contains the same 8 metadata rows (4 EN, 4 TE, 0 UR). Admin-only mutation
+  and authorized read policies remain in force. A real stored Part 227 EN PDF
+  reopened at physical page 1/40 after refresh; the eight documents have also
+  survived multiple Cloudflare deployments and authenticated sessions. No new
+  source or voter row was created, replaced, archived, deleted or bulk-verified.
+- The persistence root cause was presentation/state coupling, not temporary
+  Worker storage: Storage + metadata already persist before browser-side OCR,
+  but a later processing error could make a successful upload look failed.
+  Documents now reports permanent storage immediately and reports later OCR as
+  resumable. Duplicate checksum handling remains intact. Production upload
+  accepts EN/TE only; Urdu is explicitly blocked until authorized valid source
+  PDFs exist, while the underlying OCR language contract remains available.
+- P1 `/data-insights` PASS with real Supabase aggregates and filters. It uses
+  3,454 logical voter slots (227=1,014; 228=973; 229=888; 230=579), never sums
+  EN+TE as new voters, and shows 100% logical-slot extraction, EN 2,741/3,454,
+  TE 1,681/3,454, 1,037 paired, 22 reconciled, 1,585 unlinked sources, 1,529
+  unresolved critical issues, 721 missing serials, 662 suspicious EPICs and
+  199 failed pages. GOLD accuracy and multi-revision comparison remain honest
+  pending states, not fabricated metrics.
+- P2 logo PASS. The owner-supplied square artwork replaces the visible login,
+  sidebar, mobile-header, offline-shell and PWA icons. Deterministic 192/512
+  variants preserve the full artwork. Versioned filenames and safe-shell cache
+  `v4` prevent returning clients from retaining the former logo. Live mobile
+  login and Documents screenshots confirmed circular, contained presentation.
+- P3 application hostname independence PASS: no current workers.dev hostname is
+  hard-coded in application/configuration surfaces; internal navigation remains
+  relative. A clean custom domain is NOT CONFIGURED and requires an owner-owned
+  domain plus Cloudflare Domain/Route and Supabase Auth redirect allowlist work.
+  Current workers.dev and Netlify fallback remain active; DNS unchanged.
+- Review read/pagination production query PASS; unchanged verification RPC and
+  correction validation have focused coverage, but no real Review save/verify
+  mutation was performed. Viewer mutation denial remains RLS/server-enforced
+  but a fresh real Viewer session was not rerun in this consolidated pass.
+- Final deployed application-changing commit:
+  `92ab8badfcf5b82c4be595f5c721632074959957`; Cloudflare build
+  `1f1963b6-0560-41e4-b8ef-bb0ac436e772`; active version `6d938c9b` at 100%
+  traffic. Real production HTTP smoke 12/12 PASS after deployment. A later
+  checkpoint-only commit may rebuild identical runtime code.
+- Final gate: focused Vitest 49/49 PASS; TypeScript PASS; changed-surface ESLint
+  PASS; vinext Cloudflare build PASS. No OCR/GOLD/ML/AI processing was started.
+  Money INR0. Netlify fallback ACTIVE.
+- Remaining: configure an actual custom domain; physical mobile install/offline
+  behavior; real Viewer session and Review mutation QA; Cloudflare Free CPU risk
+  (previous active median 16.51ms vs Free 10ms allowance); human GOLD/OCR evidence;
+  enable leaked-password protection where available; repository visibility is
+  currently reported public by GitHub and should be made private by the owner.
+- NEXT EXACT TASK: Phase 2F — select a tiny private matched EN/TE sample, create
+  human-verified GOLD evidence, then Phase 2G real OCR measurement. No full-roll
+  OCR and no accuracy claim before verified GOLD exists.
 
 ## Low-usage production QA — 2026-09-14 21:54 IST
 
@@ -716,3 +770,4 @@ Do not retry deployment while Netlify explicitly blocks production deploys.
 Then add audited, admin-only quality
 snapshot exports without claiming measured OCR accuracy or Golden readiness
 until the Phase 3 evidence blockers are resolved.
+

@@ -1,5 +1,37 @@
 # Cloudflare Workers migration
 
+## Consolidated production receipt — 2026-09-20 (PARTIAL)
+
+Live Worker: https://janasoochi.anandkalidindi28.workers.dev . Final
+application-changing commit `92ab8badfcf5b82c4be595f5c721632074959957`, Git build
+`1f1963b6-0560-41e4-b8ef-bb0ac436e772`, active version `6d938c9b` at 100%
+traffic. Build and real HTTP smoke 12/12 PASS. Supabase-backed Documents and
+Data Insights production routes load under the existing Admin session; Review
+continues to return paginated rows. Netlify fallback remains ACTIVE; INR0.
+
+The owner-supplied logo is deployed under versioned 192/512 paths and safe-shell
+cache v4, resolving the former cached-artwork problem without caching sensitive
+application data. Manifest, service worker, icons, offline shell and anonymous
+route protection pass. Mobile physical installation remains NOT VERIFIED.
+
+Private Supabase Storage remains the permanent PDF store: 8 objects match 8
+metadata rows (4 EN, 4 TE, 0 UR). No PDF is stored in Worker temp/build assets.
+EN/TE ingestion is allowed; Urdu ingestion is explicitly blocked. No real data
+was mutated during QA. Data Insights uses real aggregates and 3,454 canonical
+slots without double-counting language editions; GOLD accuracy remains pending.
+
+Custom-domain code readiness PASS, but no clean domain is configured. The app
+has no hard-coded personal workers.dev dependency. Owner must supply/own a domain,
+add it in Worker Domains & Routes, then add the exact HTTPS origin/redirect to
+Supabase Auth while retaining workers.dev and Netlify during cutover.
+
+Overall remains PARTIAL: real Viewer-session negative QA, production Review
+save/verify, forced expiry, physical PWA install/offline behavior, custom domain,
+and sustained Free-tier CPU safety are not fully verified. Previous active
+median CPU was 16.51ms against the Free 10ms/request allowance, so risk remains.
+GitHub reports the repository visibility as public despite the private-project
+requirement; owner should change it to private. No Paid upgrade or DNS change.
+
 ## Low-usage QA receipt — 2026-09-14 21:54 IST (PARTIAL)
 
 Live existing Worker https://janasoochi.anandkalidindi28.workers.dev confirmed;
@@ -315,3 +347,4 @@ private HTML as a shortcut.
 Money spent INR0. Netlify fallback ACTIVE; DNS unchanged. Next: owner Wrangler
 authorization, deploy from nonrestricted build, full signed-in role/session/
 source/PWA/mobile and live CPU QA before changing the canonical production host.
+
