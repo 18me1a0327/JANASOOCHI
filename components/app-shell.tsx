@@ -121,6 +121,9 @@ export function AppShell({ children, role, email }: Readonly<{ children: ReactNo
           >
             {mobileMenuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
           </button>
+          <Link className="mobile-brand" href="/search" aria-label={`${t("brandNative")} ${t("brandName")}`}>
+            <img src="/janasoochi-mark-192.png" width="40" height="40" alt="" />
+          </Link>
           <div className="route-context">
             <activeItem.icon aria-hidden="true" />
             <div>

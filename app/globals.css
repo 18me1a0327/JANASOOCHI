@@ -62,6 +62,8 @@ h1, h2, h3, p { margin-top: 0; }
 .application-main { min-width: 0; min-height: 100vh; margin-inline-start: 17rem; transition: margin .2s ease; }
 .top-header { position: sticky; top: 0; z-index: 30; height: 4.65rem; display: flex; align-items: center; gap: 1rem; padding: 0 1.6rem; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.94); backdrop-filter: blur(14px); }
 .mobile-menu-button { display: none; width: 2.6rem; height: 2.6rem; place-items: center; border: 1px solid var(--line); border-radius: .75rem; background: #fff; color: var(--navy); }
+.mobile-brand { display: none; width: 2.6rem; height: 2.6rem; aspect-ratio: 1 / 1; place-items: center; overflow: hidden; padding: .18rem; border: 1px solid var(--line); border-radius: 50%; background: #fff; }
+.mobile-brand img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
 .route-context { min-width: 0; display: flex; align-items: center; gap: .75rem; }
 .route-context > svg { width: 1.25rem; height: 1.25rem; color: var(--blue); }
 .route-context div { min-width: 0; display: grid; }
@@ -395,6 +397,7 @@ h1, h2, h3, p { margin-top: 0; }
   .nav-collapsed .side-brand span, .nav-collapsed .workspace-identity span, .nav-collapsed .side-navigation nav span, .nav-collapsed .side-navigation-footer span { display: grid; }
   .nav-collapsed .workspace-identity, .nav-collapsed .side-navigation nav a, .nav-collapsed .side-navigation-footer a, .nav-collapsed .collapse-navigation { justify-content: flex-start; padding-inline: .9rem; }
   .mobile-menu-button { display: grid; }
+  .mobile-brand { display: grid; }
   .navigation-scrim { position: fixed; inset: 0; z-index: 35; border: 0; background: rgba(3,20,36,.62); }
   .canonical-chip { display: none; }
   .workspace-main { padding: 1.1rem; }
