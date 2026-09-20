@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertOctagon, BarChart3, CheckCircle2, CircleDashed, Filter, LoaderCircle, RefreshCw, ShieldAlert } from 'lucide-react'
 
-import { buildQualityAnalytics, count, type CountValue, type PartLanguageQualityInput, type QualitySummaryInput } from '../lib/data-quality/metrics'
+import { buildQualityAnalytics, count, percent, type CountValue, type PartLanguageQualityInput, type QualitySummaryInput } from '../lib/data-quality/metrics'
 import { createClient } from '../lib/supabase/client'
 import { useLanguage } from './language-provider'
 import { ReconciliationDrilldown } from './reconciliation-drilldown'
@@ -105,7 +105,7 @@ export function DataQualityDashboard() {
   const showCoverage = qualityView === 'overview' || qualityView === 'languages'
   const showIssues = qualityView === 'overview' || qualityView === 'extraction'
   const showFields = qualityView === 'overview' || qualityView === 'accuracy'
-  const extractionCoverage = expected ? Math.round(Math.min(100, count(overallSummary?.active_logical_voters) / expected * 1000)) / 10 : 0
+  const extractionCoverage = percent(overallSummary?.active_logical_voters, expected)
   const languageCoverage = analytics.sourceCoverage.length ? Math.min(...analytics.sourceCoverage.map((row) => row.percent)) : 0
 
   return (
