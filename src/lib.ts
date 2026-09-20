@@ -4,7 +4,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import * as pdfjs from 'pdfjs-dist'
 import { createWorker, PSM } from 'tesseract.js'
 import { createClient, isSupabaseConfigured } from '../lib/supabase/client'
-import { analyzeOcrLayout, columnizeOcrWords, countRecordLabels, detectLanguage, detectPart, extractGridCodes, gridCardizeOcrWords, languageFromFilename, OCR_REVIEW_THRESHOLD, ocrLanguages, parseRecords, pdfPayloadProblem, UNSUPPORTED } from './core'
+import { analyzeOcrLayout, columnizeOcrWords, countRecordLabels, detectLanguage, detectPart, extractGridCodes, gridCardizeOcrWords, isIngestionLanguageSupported, languageFromFilename, OCR_REVIEW_THRESHOLD, ocrLanguages, parseRecords, pdfPayloadProblem, UNSUPPORTED, URDU_BLOCKED } from './core'
 import type { BoundingBox, FieldConfidence, RecordLanguage, Voter } from './types'
 import type { Database } from '../supabase/database.types'
 
@@ -56,6 +56,8 @@ export function extractExpectedVoterTotal(text: string) {
 }
 export async function inspectPdf(file: File) {
   const bytes=await validatedPdfBytes(file)
+  const filenameLanguage=languageFromFilename(file.name)
+  if(!isIngestionLanguageSupported(filenameLanguage))throw new Error(URDU_BLOCKED)
   let pdf
   try { pdf = await pdfjs.getDocument({ data: bytes }).promise }
   catch (error) { console.error('PDF validation failed', error); throw new Error('Unable to open PDF') }
@@ -68,7 +70,7 @@ export async function inspectPdf(file: File) {
     part = part || detectPart(sample, file.name)
   }
   if (!part) throw new Error(UNSUPPORTED)
-  return { part, totalPages: pdf.numPages, language: languageFromFilename(file.name), sample, expectedVoterTotal: extractExpectedVoterTotal(sample) }
+  return { part, totalPages: pdf.numPages, language: filenameLanguage, sample, expectedVoterTotal: extractExpectedVoterTotal(sample) }
 }
 function printedPage(text: string) {
   const patterns = [

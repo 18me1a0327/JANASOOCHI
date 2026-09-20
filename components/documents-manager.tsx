@@ -6,7 +6,7 @@ import { Archive, CheckCircle2, ExternalLink, FileCheck2, LoaderCircle, Play, Re
 
 import { useAuth } from '../lib/providers/auth-provider'
 import { createClient } from '../lib/supabase/client'
-import { detectLanguage, UNSUPPORTED } from '../src/core'
+import { detectLanguage, UNSUPPORTED, URDU_BLOCKED } from '../src/core'
 import { inspectPdf, processPdf, sha256, type ProcessedPage } from '../src/lib'
 import type { DocumentRow } from '../src/types'
 import { useLanguage } from './language-provider'
@@ -273,7 +273,7 @@ export function DocumentsManager() {
       if (documentId) await createClient().from('uploaded_pdfs').update({ processing_status: 'failed', updated_at: new Date().toISOString() }).eq('id', documentId)
       else if (storagePath) await createClient().storage.from('voter-pdfs').remove([storagePath])
       const message = processError instanceof Error ? processError.message : ''
-      setError(message === UNSUPPORTED ? copy.unsupported : message.includes('PDF') ? copy.invalid : copy.failed)
+      setError(message === UNSUPPORTED ? copy.unsupported : message === URDU_BLOCKED ? t('urduBlockedMessage') : message.includes('PDF') ? copy.invalid : copy.failed)
       await load(1)
     } finally {
       setBusy(false)
