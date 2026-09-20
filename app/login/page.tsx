@@ -15,7 +15,7 @@ export default function LoginPage() {
       <section className="login-shell" aria-labelledby="login-title">
         <aside className="login-brand-panel">
           <div className="login-brand">
-            <img src="/janasoochi-logo-800.png" alt="జనసూచి — JANASOOCHI" />
+            <img src="/janasoochi-mark-512.png" alt="జనసూచి — JANASOOCHI" />
           </div>
           <div className="login-scope">
             <BookOpenCheck aria-hidden="true" />
