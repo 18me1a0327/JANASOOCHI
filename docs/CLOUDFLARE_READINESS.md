@@ -20,6 +20,10 @@ EN/TE ingestion is allowed; Urdu ingestion is explicitly blocked. No real data
 was mutated during QA. Data Insights uses real aggregates and 3,454 canonical
 slots without double-counting language editions; GOLD accuracy remains pending.
 
+The production duplicate check also submitted the existing Part 230 EN source,
+received `This PDF has already been processed.`, and left both Storage and
+metadata counts unchanged at 8.
+
 Custom-domain code readiness PASS, but no clean domain is configured. The app
 has no hard-coded personal workers.dev dependency. Owner must supply/own a domain,
 add it in Worker Domains & Routes, then add the exact HTTPS origin/redirect to

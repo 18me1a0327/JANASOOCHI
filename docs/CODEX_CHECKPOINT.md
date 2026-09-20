@@ -13,6 +13,10 @@ Consolidated production completion — PARTIAL; permanent documents and Data Ins
   reopened at physical page 1/40 after refresh; the eight documents have also
   survived multiple Cloudflare deployments and authenticated sessions. No new
   source or voter row was created, replaced, archived, deleted or bulk-verified.
+- Live duplicate protection PASS: submitting the already-processed Part 230 EN
+  PDF returned `This PDF has already been processed.` The follow-up database
+  check remained exactly 8 private Storage objects and 8 metadata rows, proving
+  that the duplicate was rejected before a second object/record was created.
 - The persistence root cause was presentation/state coupling, not temporary
   Worker storage: Storage + metadata already persist before browser-side OCR,
   but a later processing error could make a successful upload look failed.
