@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 
 import { invalidateDataCache } from './data'
 import { supabase } from './lib'
-import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewErrorContext, reviewFieldsChanged } from './review'
+import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewErrorContext, reviewFieldsChanged, reviewMutationErrorMessage } from './review'
 import type { ReviewCategory, ReviewCursor, ReviewPageRow } from './review'
 
 type Lang = 'en' | 'te' | 'ur'
@@ -147,7 +147,7 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
       const classified = classifyReviewError(saveError)
       console.error('Review correction failed', reviewErrorContext(saveError, { issueId: edit.issue_id, voterId: edit.voter_id, verified }))
       if (classified.kind === 'session') await expireSession()
-      else setError(classified.kind === 'unknown' ? 'Unable to save correction.' : classified.message)
+      else setError(reviewMutationErrorMessage(saveError))
     } finally { setBusy(false) }
   }
 
@@ -178,4 +178,3 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
     {edit && <div className="modal-backdrop"><section className="review-modal" role="dialog" aria-modal="true" aria-labelledby="review-dialog-title"><header><div><small>{copy.original}</small><h2 id="review-dialog-title">{copy.correct}</h2></div><button className="icon-button" aria-label="Close" onClick={() => setEdit(null)}><X /></button></header><pre>{edit.original_text}</pre><div className="field-confidence-grid">{Object.entries(edit.field_confidence ?? {}).map(([field, confidence]) => <span key={field}>{field.replaceAll('_', ' ')} <b>{confidence}%</b></span>)}</div><div className="review-grid">{Object.entries({ original_name: 'Name', original_relation_name: 'Relation name', original_house_number: 'House number', age: 'Age', gender: 'Gender', epic_number: 'EPIC' }).map(([key, label]) => <label key={key}>{label}<small>Original: {show(({ original_name: edit.voter_name, original_relation_name: edit.relation_name, original_house_number: edit.house_number, age: edit.age, gender: edit.gender, epic_number: edit.epic_number } as Record<string, unknown>)[key], lang)}</small><input type={key === 'age' ? 'number' : 'text'} min={key === 'age' ? 18 : undefined} max={key === 'age' ? 125 : undefined} value={fields[key] ?? ''} onChange={(event) => setFields((current) => ({ ...current, [key]: event.target.value }))} /></label>)}</div><label className="review-reason">{copy.reason}<textarea value={reason} maxLength={500} placeholder={copy.reasonHint} onChange={(event) => setReason(event.target.value)} required /></label><footer><button className="secondary" disabled={busy} onClick={() => void save(false)}>{copy.save}</button><button className="primary" disabled={busy} onClick={() => void save(true)}><CheckCircle2 />{copy.verify}</button></footer></section></div>}
   </section>
 }
-

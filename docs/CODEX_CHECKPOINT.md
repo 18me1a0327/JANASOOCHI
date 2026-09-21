@@ -1,5 +1,32 @@
 # JANASOOCHI Codex Checkpoint
 
+## Focused Review production fix — 2026-09-21
+
+- Production Admin Review list, page 2, Part 227 + EN filters, editor open,
+  correction-reason validation and refresh were exercised without changing
+  voter values. The list RPC `get_review_issues_page_v2` returned 50 paginated
+  rows; no giant `IN`/`OR` regression was found in the active Review route.
+- The misleading `Review query failed` banner came from the *mutation* catch:
+  `save_review_correction_v1` raised PostgreSQL `42702` (ambiguous
+  `verification_status`) in `UPDATE voter_records`, and the shared classifier
+  mislabeled that 400-class mutation error as a list-query failure.
+- Migration `20260921153000_fix_review_save_ambiguous_verification_status.sql`
+  qualifies `voter.verification_status`, preserves invoker security and the
+  reason/audit/raw-source rules, and was applied to the existing Supabase
+  project. A transaction-aborted Admin-role correction probe then reached its
+  success sentinel; no correction, verification or audit row persisted.
+  The separate unchanged verification RPC also passed a rollback-only probe.
+- Focused Review test added for accurate mutation messaging; `pnpm test` ran
+  72 PASS / 1 existing SKIP; TypeScript PASS; lint PASS; vinext Worker build
+  PASS (Wrangler log-directory EPERM warning in sandbox, generated build okay).
+- No actual correction or Mark Verified was performed on a real voter without
+  checking the source. Real in-browser mutation QA remains intentionally
+  unverified. Viewer denial remains enforced by existing Admin check and RLS;
+  a fresh Viewer session was not used in this focused run.
+- NEXT EXACT TASK: Phase 2F — tiny human-verified GOLD preparation after this
+  Review deployment is confirmed. Do not infer OCR accuracy.
+
+
 ## Current Phase
 
 Consolidated production completion — PARTIAL; permanent documents and Data Insights pass, custom domain and evidence-chain work remain
@@ -774,4 +801,3 @@ Do not retry deployment while Netlify explicitly blocks production deploys.
 Then add audited, admin-only quality
 snapshot exports without claiming measured OCR accuracy or Golden readiness
 until the Phase 3 evidence blockers are resolved.
-

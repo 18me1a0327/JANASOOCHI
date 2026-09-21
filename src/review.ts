@@ -121,6 +121,14 @@ export function classifyReviewError(error: unknown): ReviewQueryError {
   return { kind: 'unknown', message: 'Unable to load review issues right now.' }
 }
 
+export function reviewMutationErrorMessage(error: unknown) {
+  const classified = classifyReviewError(error)
+  if (classified.kind === 'query') {
+    return 'Unable to save this Review update. Please refresh and try again.'
+  }
+  return classified.kind === 'unknown' ? 'Unable to save this Review update.' : classified.message
+}
+
 export function reviewErrorContext(error: unknown, context: Record<string, unknown>) {
   const value = (typeof error === 'object' && error !== null ? error : {}) as ErrorShape
   return {
@@ -132,4 +140,3 @@ export function reviewErrorContext(error: unknown, context: Record<string, unkno
     hint: value.hint ?? null,
   }
 }
-

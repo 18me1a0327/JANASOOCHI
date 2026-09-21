@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewFieldsChanged, reviewPageOffset } from './review'
+import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewFieldsChanged, reviewMutationErrorMessage, reviewPageOffset } from './review'
 import type { ReviewPageRow } from './review'
 
 describe('review pagination', () => {
@@ -36,6 +36,14 @@ describe('review error messages', () => {
   })
 })
 
+describe('review mutation errors', () => {
+  it('does not mislabel a mutation failure as a Review list-query failure', () => {
+    expect(reviewMutationErrorMessage({ status: 400, code: '42702' })).toBe(
+      'Unable to save this Review update. Please refresh and try again.',
+    )
+  })
+})
+
 describe('review correction validation', () => {
   const row = {
     voter_name: 'Lakshmi', relation_name: 'Rao', house_number: '1-25',
@@ -51,4 +59,3 @@ describe('review correction validation', () => {
     expect(reviewFieldsChanged(row, { ...unchanged, original_name: 'Lakshmi Devi' })).toBe(true)
   })
 })
-
