@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewFieldsChanged, reviewMutationErrorMessage, reviewPageOffset } from './review'
+import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewFieldsChanged, reviewInitialFields, reviewMutationErrorMessage, reviewPageOffset } from './review'
 import type { ReviewPageRow } from './review'
 
 describe('review pagination', () => {
@@ -34,9 +34,7 @@ describe('review error messages', () => {
     expect(classifyReviewError({ status: 400, code: 'PGRST100' }).kind).toBe('query')
     expect(classifyReviewError(new TypeError('Failed to fetch')).kind).toBe('network')
   })
-})
 
-describe('review mutation errors', () => {
   it('does not mislabel a mutation failure as a Review list-query failure', () => {
     expect(reviewMutationErrorMessage({ status: 400, code: '42702' })).toBe(
       'Unable to save this Review update. Please refresh and try again.',
@@ -57,5 +55,14 @@ describe('review correction validation', () => {
 
   it('detects a real field correction', () => {
     expect(reviewFieldsChanged(row, { ...unchanged, original_name: 'Lakshmi Devi' })).toBe(true)
+  })
+
+  it('does not create a false edit for null, empty or corrected empty values', () => {
+    const source = { ...row, relation_name: null, corrected_value: { original_name: '', age: '48' } } as ReviewPageRow
+    const initial = reviewInitialFields(source)
+    expect(initial.original_name).toBe('')
+    expect(initial.original_relation_name).toBe('')
+    expect(initial.age).toBe('48')
+    expect(reviewFieldsChanged(source, initial)).toBe(false)
   })
 })

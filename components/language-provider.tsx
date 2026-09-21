@@ -15,7 +15,8 @@ const ENGLISH = {
   navSearch: "Search",
   navDocuments: "Documents",
   navReview: "Review",
-  navDataQuality: "Data Insights",
+  navDataQuality: "Data Quality",
+  navDataInsights: "Data Insights",
   navAdministration: "Administration",
   logout: "Sign out",
   openMenu: "Open menu",
@@ -194,7 +195,8 @@ const TELUGU: Partial<Record<TranslationKey, string>> = {
   navSearch: "శోధన",
   navDocuments: "పత్రాలు",
   navReview: "సమీక్ష",
-  navDataQuality: "డేటా అంతర్దృష్టులు",
+  navDataQuality: "డేటా నాణ్యత",
+  navDataInsights: "డేటా అంతర్దృష్టులు",
   navAdministration: "నిర్వహణ",
   logout: "సైన్ అవుట్",
   openMenu: "మెను తెరవండి",
@@ -363,7 +365,8 @@ const URDU: Partial<Record<TranslationKey, string>> = {
   navSearch: "تلاش",
   navDocuments: "دستاویزات",
   navReview: "جائزہ",
-  navDataQuality: "ڈیٹا بصیرت",
+  navDataQuality: "ڈیٹا معیار",
+  navDataInsights: "ڈیٹا بصیرت",
   navAdministration: "انتظامیہ",
   logout: "سائن آؤٹ",
   openMenu: "مینو کھولیں",
@@ -575,4 +578,3 @@ export function useLanguage() {
   if (!context) throw new Error("useLanguage must be used within LanguageProvider");
   return context;
 }
-

@@ -61,6 +61,17 @@ const CORRECTABLE_FIELDS = [
   'epic_number',
 ] as const
 
+export function reviewInitialFields(row: ReviewPageRow): Record<(typeof CORRECTABLE_FIELDS)[number], string> {
+  return {
+    original_name: String(row.corrected_value?.original_name ?? row.voter_name ?? ''),
+    original_relation_name: String(row.corrected_value?.original_relation_name ?? row.relation_name ?? ''),
+    original_house_number: String(row.corrected_value?.original_house_number ?? row.house_number ?? ''),
+    age: String(row.corrected_value?.age ?? row.age ?? ''),
+    gender: String(row.corrected_value?.gender ?? row.gender ?? ''),
+    epic_number: String(row.corrected_value?.epic_number ?? row.epic_number ?? ''),
+  }
+}
+
 export function reviewFieldsChanged(row: ReviewPageRow, fields: Record<string, string>) {
   const original: Record<(typeof CORRECTABLE_FIELDS)[number], unknown> = {
     original_name: row.corrected_value?.original_name ?? row.voter_name,

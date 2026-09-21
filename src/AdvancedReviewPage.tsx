@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 
 import { invalidateDataCache } from './data'
 import { supabase } from './lib'
-import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewErrorContext, reviewFieldsChanged, reviewMutationErrorMessage } from './review'
+import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewErrorContext, reviewFieldsChanged, reviewInitialFields, reviewMutationErrorMessage } from './review'
 import type { ReviewCategory, ReviewCursor, ReviewPageRow } from './review'
 
 type Lang = 'en' | 'te' | 'ur'
@@ -20,6 +20,12 @@ const COPY = {
   en: { title: 'OCR review queue', lead: 'Page failures, uncertain fields, source gaps and structural conflicts.', refresh: 'Refresh', issues: 'issues', retained: 'Original OCR and source values are always retained.', search: 'Search Review issues', searchHint: 'Name, relation, house, EPIC, serial, issue or filename', clear: 'Clear', part: 'Part', source: 'Source language', status: 'Status', severity: 'Severity', rows: 'Rows per page', page: 'Page', of: 'of', previous: 'Previous', next: 'Next', noRows: 'No Review issues match these filters.', issue: 'Issue', pdfPage: 'PDF Page', voter: 'Voter', confidence: 'Confidence', action: 'Action', openSource: 'Source', review: 'Review', original: 'Original values remain unchanged', correct: 'Correct OCR fields', reason: 'Correction reason', reasonHint: 'Describe what was checked against the source page', save: 'Save correction', verify: 'Save & mark verified', reasonRequired: 'Enter a correction reason before saving.', all: 'All', languages: 'All languages' },
   te: { title: 'OCR సమీక్ష వరుస', lead: 'పేజీ వైఫల్యాలు, అనిశ్చిత ఫీల్డులు, మూల లోపాలు మరియు నిర్మాణ విభేదాలు.', refresh: 'రిఫ్రెష్', issues: 'సమస్యలు', retained: 'మూల OCR మరియు మూల విలువలు ఎల్లప్పుడూ భద్రపరచబడతాయి.', search: 'సమీక్ష సమస్యలను వెతకండి', searchHint: 'పేరు, బంధం, ఇల్లు, EPIC, క్రమ సంఖ్య, సమస్య లేదా ఫైల్', clear: 'తొలగించు', part: 'భాగం', source: 'మూల భాష', status: 'స్థితి', severity: 'తీవ్రత', rows: 'పేజీకి వరుసలు', page: 'పేజీ', of: '/', previous: 'మునుపటి', next: 'తదుపరి', noRows: 'ఈ ఫిల్టర్లకు సరిపోయే సమీక్ష సమస్యలు లేవు.', issue: 'సమస్య', pdfPage: 'PDF పేజీ', voter: 'ఓటరు', confidence: 'నమ్మకం', action: 'చర్య', openSource: 'మూలం', review: 'సమీక్ష', original: 'మూల విలువలు మారవు', correct: 'OCR ఫీల్డులను సరిచేయండి', reason: 'సవరణ కారణం', reasonHint: 'మూల పేజీతో ఏది తనిఖీ చేశారో వివరించండి', save: 'సవరణ సేవ్', verify: 'సేవ్ చేసి ధృవీకరించు', reasonRequired: 'సేవ్ చేసే ముందు సవరణ కారణాన్ని నమోదు చేయండి.', all: 'అన్నీ', languages: 'అన్ని భాషలు' },
   ur: { title: 'OCR جائزہ قطار', lead: 'صفحہ ناکامیاں، غیر یقینی فیلڈز، ماخذ خلا اور ساختی تضادات۔', refresh: 'تازہ کریں', issues: 'مسائل', retained: 'اصل OCR اور ماخذ اقدار ہمیشہ محفوظ رہتی ہیں۔', search: 'جائزہ مسائل تلاش کریں', searchHint: 'نام، رشتہ، مکان، EPIC، سیریل، مسئلہ یا فائل', clear: 'صاف کریں', part: 'حصہ', source: 'ماخذ زبان', status: 'حالت', severity: 'شدت', rows: 'فی صفحہ قطاریں', page: 'صفحہ', of: 'از', previous: 'پچھلا', next: 'اگلا', noRows: 'ان فلٹرز سے کوئی جائزہ مسئلہ نہیں ملا۔', issue: 'مسئلہ', pdfPage: 'PDF صفحہ', voter: 'ووٹر', confidence: 'اعتماد', action: 'عمل', openSource: 'ماخذ', review: 'جائزہ', original: 'اصل اقدار تبدیل نہیں ہوتیں', correct: 'OCR فیلڈ درست کریں', reason: 'تصحیح کی وجہ', reasonHint: 'وضاحت کریں کہ ماخذ صفحہ سے کیا جانچا گیا', save: 'تصحیح محفوظ کریں', verify: 'محفوظ اور تصدیق کریں', reasonRequired: 'محفوظ کرنے سے پہلے تصحیح کی وجہ درج کریں۔', all: 'سب', languages: 'تمام زبانیں' },
+} as const
+
+const ACTION_COPY = {
+  en: { verify: 'Mark verified', revert: 'Revert edits', unsaved: 'Save the correction with a reason or revert edits before marking verified.' },
+  te: { verify: 'ధృవీకరించు', revert: 'మార్పులను రద్దు చేయి', unsaved: 'ధృవీకరించే ముందు కారణంతో సవరణను సేవ్ చేయండి లేదా మార్పులను రద్దు చేయండి.' },
+  ur: { verify: 'تصدیق کریں', revert: 'تبدیلیاں واپس کریں', unsaved: 'تصدیق سے پہلے وجہ کے ساتھ تصحیح محفوظ کریں یا تبدیلیاں واپس کریں۔' },
 } as const
 
 const CATEGORY_LABELS: Record<ReviewCategory, string> = {
@@ -51,6 +57,7 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
   const [error, setError] = useState('')
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
   const cursor = cursors[page] ?? null
+  const hasUnsavedChanges = edit ? reviewFieldsChanged(edit, fields) : false
 
   const expireSession = useCallback(async () => {
     sessionStorage.setItem('pv-auth-message', 'Your session has expired. Please sign in again.')
@@ -111,19 +118,13 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
   function openEditor(row: ReviewPageRow) {
     setEdit(row)
     setReason('')
-    setFields({
-      original_name: row.corrected_value?.original_name || row.voter_name || '',
-      original_relation_name: row.corrected_value?.original_relation_name || row.relation_name || '',
-      original_house_number: row.corrected_value?.original_house_number || row.house_number || '',
-      age: row.corrected_value?.age || String(row.age ?? ''),
-      gender: row.corrected_value?.gender || row.gender || '',
-      epic_number: row.corrected_value?.epic_number || row.epic_number || '',
-    })
+    setFields(reviewInitialFields(row))
   }
 
   async function save(verified: boolean) {
     if (!edit?.voter_id) return
     const changed = reviewFieldsChanged(edit, fields)
+    if (verified && changed) { setError(ACTION_COPY[lang].unsaved); return }
     if (changed && !reason.trim()) { setError(copy.reasonRequired); return }
     if (!changed && !verified) return
     setBusy(true); setError('')
@@ -175,6 +176,22 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
       return <tr key={row.issue_id}><td><span className={`severity ${row.issue_severity}`}>{row.issue_severity.replaceAll('_', ' ')}</span><b>{row.issue_type.replaceAll('_', ' ')}</b><small>{row.issue_detail}</small></td><td>{row.part_number ?? '—'}</td><td>{row.voter_pdf_page_number ?? row.page_pdf_page_number ?? '—'}{(row.voter_printed_page_number ?? row.page_printed_page_number) && <small>Printed {row.voter_printed_page_number ?? row.page_printed_page_number}</small>}</td><td>{show(row.voter_name, lang)}{row.serial_number && <small>Serial {row.serial_number}</small>}</td><td>{confidence === null || confidence === undefined ? 'Text / unavailable' : `${Number(confidence).toFixed(0)}%`}</td><td><span className={`status ${row.issue_status === 'open' ? 'requires_review' : row.issue_status}`}>{row.issue_status.replaceAll('_', ' ')}</span></td><td><div className="row-actions"><button className="secondary compact" onClick={() => source(row)}><ExternalLink />{copy.openSource}</button>{row.voter_id && row.issue_status === 'open' && <button className="primary compact" onClick={() => openEditor(row)}>{copy.review}</button>}</div></td></tr>
     })}</tbody></table>{!busy && !rows.length && <p className="empty-row">{copy.noRows}</p>}</div>
     <div className="pagination review-pagination"><button className="secondary compact" disabled={busy || page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}><ChevronLeft />{copy.previous}</button><span>{copy.page} {page} {copy.of} {pageCount}</span><button className="secondary compact" disabled={busy || page >= pageCount || !rows.length} onClick={nextPage}>{copy.next}<ChevronRight /></button></div>
-    {edit && <div className="modal-backdrop"><section className="review-modal" role="dialog" aria-modal="true" aria-labelledby="review-dialog-title"><header><div><small>{copy.original}</small><h2 id="review-dialog-title">{copy.correct}</h2></div><button className="icon-button" aria-label="Close" onClick={() => setEdit(null)}><X /></button></header><pre>{edit.original_text}</pre><div className="field-confidence-grid">{Object.entries(edit.field_confidence ?? {}).map(([field, confidence]) => <span key={field}>{field.replaceAll('_', ' ')} <b>{confidence}%</b></span>)}</div><div className="review-grid">{Object.entries({ original_name: 'Name', original_relation_name: 'Relation name', original_house_number: 'House number', age: 'Age', gender: 'Gender', epic_number: 'EPIC' }).map(([key, label]) => <label key={key}>{label}<small>Original: {show(({ original_name: edit.voter_name, original_relation_name: edit.relation_name, original_house_number: edit.house_number, age: edit.age, gender: edit.gender, epic_number: edit.epic_number } as Record<string, unknown>)[key], lang)}</small><input type={key === 'age' ? 'number' : 'text'} min={key === 'age' ? 18 : undefined} max={key === 'age' ? 125 : undefined} value={fields[key] ?? ''} onChange={(event) => setFields((current) => ({ ...current, [key]: event.target.value }))} /></label>)}</div><label className="review-reason">{copy.reason}<textarea value={reason} maxLength={500} placeholder={copy.reasonHint} onChange={(event) => setReason(event.target.value)} required /></label><footer><button className="secondary" disabled={busy} onClick={() => void save(false)}>{copy.save}</button><button className="primary" disabled={busy} onClick={() => void save(true)}><CheckCircle2 />{copy.verify}</button></footer></section></div>}
+    {edit && <div className="modal-backdrop"><section className="review-modal" role="dialog" aria-modal="true" aria-labelledby="review-dialog-title">
+      <header><div><small>{copy.original}</small><h2 id="review-dialog-title">{copy.correct}</h2></div><button className="icon-button" aria-label="Close" onClick={() => setEdit(null)}><X /></button></header>
+      <div className="review-editor-layout">
+        <aside className="review-evidence">
+          <h3>{copy.openSource}</h3>
+          <dl><div><dt>{copy.part}</dt><dd>{edit.part_number ?? '—'}</dd></div><div><dt>Serial</dt><dd>{edit.serial_number ?? '—'}</dd></div><div><dt>{copy.pdfPage}</dt><dd>{edit.voter_pdf_page_number ?? edit.page_pdf_page_number ?? '—'}</dd></div><div><dt>{copy.source}</dt><dd>{edit.source_language ?? '—'}</dd></div></dl>
+          <a className="secondary review-source-link" href={`/source/${edit.pdf_id}?page=${edit.voter_pdf_page_number ?? edit.page_pdf_page_number ?? 1}&voter=${edit.voter_id}`} target="_blank" rel="noopener noreferrer"><ExternalLink aria-hidden="true" />{copy.openSource}</a>
+          <h3>{copy.original}</h3><pre>{edit.original_text ?? missing[lang]}</pre>
+          <div className="field-confidence-grid">{Object.entries(edit.field_confidence ?? {}).map(([field, confidence]) => <span key={field}>{field.replaceAll('_', ' ')} <b>{confidence}%</b></span>)}</div>
+        </aside>
+        <div className="review-editor-fields">
+          <div className="review-grid">{Object.entries({ original_name: 'Name', original_relation_name: 'Relation name', original_house_number: 'House number', age: 'Age', gender: 'Gender', epic_number: 'EPIC' }).map(([key, label]) => <label key={key}>{label}<small>Original: {show(({ original_name: edit.voter_name, original_relation_name: edit.relation_name, original_house_number: edit.house_number, age: edit.age, gender: edit.gender, epic_number: edit.epic_number } as Record<string, unknown>)[key], lang)}</small><input type={key === 'age' ? 'number' : 'text'} min={key === 'age' ? 18 : undefined} max={key === 'age' ? 125 : undefined} value={fields[key] ?? ''} onChange={(event) => setFields((current) => ({ ...current, [key]: event.target.value }))} /></label>)}</div>
+          {hasUnsavedChanges && <><p className="review-unsaved" role="status">{ACTION_COPY[lang].unsaved}</p><label className="review-reason">{copy.reason}<textarea value={reason} maxLength={500} placeholder={copy.reasonHint} onChange={(event) => setReason(event.target.value)} required /></label></>}
+        </div>
+      </div>
+      <footer>{hasUnsavedChanges && <button className="secondary" type="button" disabled={busy} onClick={() => { setFields(reviewInitialFields(edit)); setReason(''); setError('') }}>{ACTION_COPY[lang].revert}</button>}<button className="secondary" type="button" disabled={busy || !hasUnsavedChanges} onClick={() => void save(false)}>{copy.save}</button><button className="primary" type="button" disabled={busy || hasUnsavedChanges} onClick={() => void save(true)}><CheckCircle2 />{ACTION_COPY[lang].verify}</button></footer>
+    </section></div>}
   </section>
 }

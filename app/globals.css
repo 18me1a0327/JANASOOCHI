@@ -1,9 +1,19 @@
 :root {
+  --background: #f5f7fb;
+  --surface: #ffffff;
+  --surface-muted: #f8faff;
+  --text-primary: #183153;
+  --text-secondary: #66758a;
+  --accent: #3c78df;
+  --success: #157047;
+  --warning: #b66a09;
+  --danger: #b42318;
+  --info: #1769aa;
   --ink: #10243a;
   --ink-muted: #607084;
   --navy: #0b2f56;
   --navy-deep: #072541;
-  --blue: #1769aa;
+  --blue: var(--accent);
   --blue-soft: #eaf4fb;
   --green: #157047;
   --green-soft: #eaf7f0;
@@ -11,12 +21,13 @@
   --saffron-soft: #fff7e8;
   --red: #b42318;
   --red-soft: #fff1f0;
-  --paper: #ffffff;
-  --canvas: #f3f7fa;
-  --line: #d9e3eb;
+  --paper: var(--surface);
+  --canvas: var(--background);
+  --line: #e3e9f1;
   --line-strong: #becbd6;
   --shadow: 0 12px 35px rgba(17, 48, 76, 0.08);
-  --radius: 16px;
+  --shadow-panel: 0 3px 14px rgba(24, 49, 83, 0.045);
+  --radius: 14px;
   font-family: Inter, "Noto Sans Telugu", "Noto Nastaliq Urdu", "Segoe UI", sans-serif;
   color: var(--ink);
   background: var(--canvas);
@@ -462,3 +473,73 @@ h1, h2, h3, p { margin-top: 0; }
   .surface-panel, .metric-card { box-shadow: none; }
 }
 
+/* DashStack-inspired application treatment. Existing civic workflows and data stay unchanged. */
+.side-navigation {
+  color: var(--text-primary);
+  background: var(--surface);
+  border-inline-end: 1px solid var(--line);
+  box-shadow: 4px 0 22px rgba(24, 49, 83, .025);
+}
+.side-brand { border-bottom-color: var(--line); }
+.side-brand b { color: var(--green); }
+.side-brand strong { color: var(--navy-deep); letter-spacing: .085em; }
+.workspace-identity { border-color: var(--line); background: var(--surface-muted); }
+.workspace-identity b { color: var(--navy-deep); }
+.workspace-identity small { color: var(--text-secondary); }
+.workspace-identity > svg { color: var(--blue); }
+.side-navigation nav a, .side-navigation-footer a, .side-navigation-footer button, .collapse-navigation { color: #51637b; border-radius: .7rem; }
+.side-navigation nav a:hover, .side-navigation-footer a:hover, .side-navigation-footer button:hover, .collapse-navigation:hover { color: var(--blue); background: #f1f6ff; }
+.side-navigation nav a.active { color: #1f58bb; background: #eaf2ff; box-shadow: none; }
+.side-navigation nav a.active svg { color: var(--blue); }
+.side-navigation-footer { border-top-color: var(--line); }
+.top-header { background: rgba(255, 255, 255, .97); backdrop-filter: none; }
+.route-context > svg { color: var(--blue); }
+.workspace-main { padding: clamp(1rem, 2vw, 2rem); }
+.surface-panel, .metric-card, .data-table, .summary-strip, .review-toolbar, .review-search, .standalone-page .review-filters {
+  border-color: var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+}
+.surface-panel { box-shadow: var(--shadow-panel); }
+.panel-header, .data-table th { background: var(--surface-muted); }
+.metric-card { border-top: 1px solid var(--line); border-inline-start: 3px solid #a9c5f4; }
+.metric-card.positive { border-top-color: var(--line); border-inline-start-color: var(--green); }
+.metric-card.warning { border-top-color: var(--line); border-inline-start-color: var(--saffron); }
+.metric-card strong { font-variant-numeric: tabular-nums; }
+.button, .primary, .secondary, .icon-button { transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
+.button.primary, .primary { box-shadow: 0 3px 10px rgba(60, 120, 223, .14); }
+.button.primary:hover, .primary:hover { background: #2d66c6; }
+.button.secondary:hover, .secondary:hover { border-color: var(--blue); color: var(--blue); background: #f8fbff; }
+.data-table tbody tr + tr { border-top: 1px solid #edf1f6; }
+.data-table tbody tr:hover { background: #fafcff; }
+.data-table td { vertical-align: middle; }
+.review-table td:first-child { min-width: 15rem; }
+.review-table td small { display: block; margin-top: .2rem; color: var(--ink-muted); }
+.review-modal { width: min(70rem, 100%); }
+.review-editor-layout { display: grid; grid-template-columns: minmax(15rem, .8fr) minmax(0, 1.5fr); min-height: 20rem; }
+.review-evidence { min-width: 0; padding: 1rem; border-inline-end: 1px solid var(--line); background: var(--surface-muted); }
+.review-evidence h3 { margin: 0 0 .75rem; font-size: .86rem; color: var(--navy-deep); }
+.review-evidence dl { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; margin: 0 0 1rem; }
+.review-evidence dt { color: var(--text-secondary); font-size: .68rem; font-weight: 800; }
+.review-evidence dd { margin: .18rem 0 0; color: var(--text-primary); font-size: .82rem; font-weight: 800; overflow-wrap: anywhere; }
+.review-source-link { width: 100%; margin-bottom: 1.2rem; text-decoration: none; }
+.review-evidence pre { max-height: 14rem; margin: 0 0 1rem; border: 1px solid var(--line); background: #fff; }
+.review-evidence .field-confidence-grid { padding: 0; }
+.review-editor-fields { min-width: 0; }
+.review-grid label small { color: var(--text-secondary); font-weight: 500; line-height: 1.4; }
+.review-unsaved { margin: 0 1rem 1rem; padding: .7rem .8rem; border: 1px solid #ead19c; border-radius: .7rem; color: #795018; background: var(--saffron-soft); font-size: .76rem; line-height: 1.45; }
+.review-modal > footer { flex-wrap: wrap; }
+.review-modal button:disabled { opacity: .55; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgba(60, 120, 223, .45);
+  outline-offset: 2px;
+}
+@media (max-width: 820px) {
+  .review-editor-layout { grid-template-columns: 1fr; }
+  .review-evidence { border-inline-end: 0; border-bottom: 1px solid var(--line); }
+}
+@media (max-width: 560px) {
+  .review-modal { max-height: calc(100dvh - 1rem); }
+  .review-evidence dl { grid-template-columns: 1fr 1fr; }
+  .review-modal > footer button { flex: 1 1 9rem; }
+}
