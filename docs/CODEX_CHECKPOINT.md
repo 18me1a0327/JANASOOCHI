@@ -1,5 +1,66 @@
 # JANASOOCHI Codex Checkpoint
 
+## DashStack-inspired workspace refinement — 2026-09-24
+
+- Applied a focused shared-shell and design-token refinement using the supplied
+  DashStack reference as visual direction only. The official JANASOOCHI logo,
+  existing routes, real Supabase data, authorization and source workflows were
+  preserved. Search, Documents, Review, Data Quality, Data Insights,
+  Administration and Login inherit the updated neutral canvas, white surfaces,
+  blue accent, table, form, focus and responsive styles.
+- Navigation now exposes Data Quality and Data Insights as separate localized
+  destinations. No Figma assets or demo data were copied into the application.
+- Review initial values now use null-aware source/corrected selection. An
+  unchanged row keeps Save correction disabled and allows Mark verified without
+  a correction reason. A real field edit cannot be silently verified: the UI
+  requires Revert or Save correction, and Save correction still requires its
+  audit reason. RAW/source evidence remains read-only and the source-page link
+  remains available in the editor.
+- Local gate: focused Review tests 8/8 PASS; complete active web tests 73 PASS /
+  1 existing SKIP; TypeScript PASS; lint PASS; vinext Cloudflare build PASS.
+  Wrangler again emitted only the sandbox log-directory EPERM warning after
+  producing the build successfully.
+- GitHub `main` commit: `58567b5d5d794c821f8ccf94f1b58318c6752e5c`.
+  Production serves the new separate Data Quality/Data Insights navigation and
+  the new source-evidence Review editor, proving the application commit reached
+  the live Worker. Cloudflare's deployment-detail dashboard rendered blank and
+  Wrangler had no non-interactive API token, so the Cloudflare version/deploy ID
+  was not independently read. Real production HTTP smoke: 12/12 PASS.
+- Non-destructive production QA: Admin Review loaded 4,277 issues, page 1 of 86
+  with 50 paginated rows and no query-failure banner. Opening a real row showed
+  immutable original OCR/source evidence, enabled Mark verified and disabled
+  unchanged Save correction. No correction, verification, voter value or source
+  value was written during QA.
+- Responsive CSS exists for desktop/tablet/mobile and the editor was visually
+  checked at the available compact browser viewport. Full physical-device and
+  cross-breakpoint QA remains pending. Auth, Viewer permissions, Review mutation,
+  PWA offline-device behavior and Cloudflare CPU risk were not re-tested in this
+  presentation-focused run.
+- Phase 2F remains prepared but not GOLD: eight private EN/TE candidates still
+  require authorized human source verification. No OCR accuracy was measured;
+  Phase 2G/2H and full ingestion remain blocked on verified GOLD evidence.
+- NEXT EXACT TASK: authorized human verifies the eight private Phase 2F source
+  cards and transcribes the GOLD rows; then run validation before any real OCR
+  accuracy comparison. Do not claim accuracy or start full-roll OCR first.
+
+## Phase 2F pilot preparation — 2026-09-21
+
+- Prepared eight private, Git-ignored EN/TE candidate source rows: one
+  cross-language Part+Serial pair for each of Parts 227–230. Manifest and
+  annotation instructions are in `ground-truth-private/` and are not GOLD.
+- All eight locally available source PDFs start with `%PDF-`; their SHA-256
+  checksums match active private `uploaded_pdfs` metadata. Candidate physical
+  pages are database references only and still require human source checks.
+- Current voter rows have no `source_card_index`; card position/bbox and all
+  GOLD values are intentionally blank. The Telugu Part 227 printed-page
+  metadata is also missing. Do not infer any of these values.
+- Existing Phase 2F validator focused tests: 16 PASS. No OCR was executed,
+  no human verification was performed, no accuracy was measured, and no
+  production voter data was changed.
+- NEXT EXACT TASK: authorized human verifies the eight source cards and
+  transcribes private GOLD rows with card geometry and verifier audit fields;
+  then validate the populated file before any Phase 2G comparison.
+
 ## Focused Review production fix — 2026-09-21
 
 - Production Admin Review list, page 2, Part 227 + EN filters, editor open,
@@ -26,10 +87,11 @@
 - NEXT EXACT TASK: Phase 2F — tiny human-verified GOLD preparation after this
   Review deployment is confirmed. Do not infer OCR accuracy.
 
-
 ## Current Phase
 
-Consolidated production completion — PARTIAL; permanent documents and Data Insights pass, custom domain and evidence-chain work remain
+DashStack-inspired workspace refinement — PARTIAL; implementation, local gate,
+GitHub push and live non-destructive Review smoke pass, while physical-device
+responsive QA, safe Review mutation QA and the human-GOLD evidence chain remain
 
 ## Consolidated production completion — 2026-09-20
 
@@ -801,3 +863,4 @@ Do not retry deployment while Netlify explicitly blocks production deploys.
 Then add audited, admin-only quality
 snapshot exports without claiming measured OCR accuracy or Golden readiness
 until the Phase 3 evidence blockers are resolved.
+
