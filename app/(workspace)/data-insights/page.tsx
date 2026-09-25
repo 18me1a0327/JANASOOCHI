@@ -1,11 +1,8 @@
 "use client";
 
-import { DataQualityDashboard } from "../../../components/data-quality-dashboard";
-import { useLanguage } from "../../../components/language-provider";
-import { PageHeader } from "../../../components/ui-shell";
+import { DataInsightsDashboard } from "../../../components/data-insights-dashboard";
 
 export default function DataInsightsPage() {
-  const { t } = useLanguage();
-  return <><PageHeader eyebrow={t("expectedRegister")} title={t("pageQualityTitle")} description={t("pageQualityLead")} /><DataQualityDashboard /></>;
+  return <DataInsightsDashboard />;
 }
 

@@ -1,5 +1,49 @@
 # JANASOOCHI Codex Checkpoint
 
+## Data Insights voter analytics — 2026-09-25
+
+- DATA INSIGHTS STATUS: implementation and database aggregation PASS locally.
+  `/data-insights` is now a dedicated voter-demographics dashboard rather than
+  a duplicate of Data Quality. It provides Overview, Parts, Gender, Age,
+  House-number groups, Data Indicators and Revision Comparison views, using
+  the existing JANASOOCHI shell and English/Telugu/Urdu UI copy.
+- DATA SOURCE: read-only Admin RPC `get_voter_insights_v1`, applied through
+  migration `20260924190000_voter_insights_analytics.sql`. It starts from one
+  active expected `logical_voters` slot and its canonical source record, so EN
+  and TE source editions never increase population counts. The function is
+  `SECURITY INVOKER`, checks `is_admin()`, and is unavailable to anon/public.
+- EXPECTED LOGICAL TOTAL: 3,454 (227=1,014; 228=973; 229=888; 230=579).
+  AVAILABLE CANONICAL TOTAL: 2,733 (227=293; 228=973; 229=888; 230=579).
+- GENDER ANALYTICS: 1,338 male; 1,390 female; 0 other; 5 unknown. Unknown is
+  retained rather than reassigned. AGE ANALYTICS: average 44.1, median 41,
+  youngest 19, oldest 94; 2,730 valid and 3 missing/unknown ages.
+- HOUSE-NUMBER ANALYTICS: 1,241 normalized Part-scoped groups, average 2.1
+  voters per group, largest group 10. These are explicitly aggregate groups,
+  not inferred families.
+- DATA INDICATORS: 7 duplicate-EPIC groups, 721 missing canonical sources,
+  2,295 unexpected source-serial indicators, 8 duplicate Part/language/serial
+  groups, 100 unresolved critical issues. Indicators do not label fraud or
+  delete/modify records.
+- REVISION COMPARISON: one current revision only; the UI shows the required
+  professional empty state and does not fabricate added/removed/changed data.
+- FILTERS: live transaction checks passed for Part 227, Female, age 18–25 and
+  a zero-result combination. Expected totals stay visibly structural while
+  demographic metrics use the filtered canonical population.
+- TESTS: focused Data Insights 25/25 PASS; full web suite 98 PASS / 1 existing
+  SKIP; TypeScript PASS; lint PASS; vinext Cloudflare build PASS. The build
+  emitted the known sandbox Wrangler log-directory EPERM warning but completed
+  and generated route types successfully.
+- RESPONSIVE QA / PRODUCTION QA: pending the single GitHub push and Cloudflare
+  deployment. CSS breakpoints cover 375/768/1440 and the summary table has
+  intentional contained horizontal scrolling; production visual verification
+  remains required.
+- DATABASE ADVISORS: no new function/RLS warning was reported. Existing Auth
+  leaked-password protection remains disabled; existing unused-index notices
+  remain informational and were not changed in this focused task.
+- No voter, source, Review, verification or correction row was mutated.
+- NEXT EXACT TASK: deploy and smoke-test this Data Insights commit once; after
+  production PASS, return to Phase 2F human GOLD verification.
+
 ## DashStack-inspired workspace refinement — 2026-09-24
 
 - Applied a focused shared-shell and design-token refinement using the supplied
