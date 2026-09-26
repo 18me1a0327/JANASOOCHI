@@ -148,7 +148,6 @@ export function DataInsightsDashboard() {
   const available = numeric(data?.available_total)
   const knownGender = numeric(data?.male_total) + numeric(data?.female_total) + numeric(data?.other_total) + numeric(data?.unknown_gender_total)
   const maxPart = Math.max(1, ...parts.map((row) => Math.max(numeric(row.expected), numeric(row.available))))
-  const maxGender = Math.max(1, numeric(data?.male_total), numeric(data?.female_total), numeric(data?.other_total), numeric(data?.unknown_gender_total))
   const maxAge = Math.max(1, ...ages.map((row) => numeric(row.count)))
   const maxHouse = Math.max(1, ...houses.map((row) => numeric(row.count)))
   const filterActive = Boolean(part || gender || age)
@@ -194,22 +193,22 @@ export function DataInsightsDashboard() {
               {!parts.length && <EmptyState title={copy.noData} description={copy.actualData} />}
             </Panel>
             <Panel title={copy.genderTitle} description={copy.genderHelp}>
-              <BarList max={maxGender} rows={[
+              <DonutChart label={copy.genderTitle} rows={[
                 [copy.male, numeric(data.male_total), 'male'], [copy.female, numeric(data.female_total), 'female'], [copy.otherUnknownShort, numeric(data.other_total), 'other'], [copy.unknown, numeric(data.unknown_gender_total), 'unknown'],
-              ]} denominator={knownGender} />
+              ]} total={knownGender} totalLabel={copy.total} />
             </Panel>
           </div>
           <PartSummary parts={parts} copy={copy} />
         </>}
 
         {view === 'gender' && <div className="analytics-two-column">
-          <Panel title={copy.genderTitle} description={copy.genderHelp}><BarList max={maxGender} rows={[[copy.male,numeric(data.male_total),'male'],[copy.female,numeric(data.female_total),'female'],[copy.otherUnknownShort,numeric(data.other_total),'other'],[copy.unknown,numeric(data.unknown_gender_total),'unknown']]} denominator={knownGender} /></Panel>
+          <Panel title={copy.genderTitle} description={copy.genderHelp}><DonutChart label={copy.genderTitle} rows={[[copy.male,numeric(data.male_total),'male'],[copy.female,numeric(data.female_total),'female'],[copy.otherUnknownShort,numeric(data.other_total),'other'],[copy.unknown,numeric(data.unknown_gender_total),'unknown']]} total={knownGender} totalLabel={copy.total} /></Panel>
           <Panel title={`${copy.genderTitle} · ${copy.part}`} description={copy.actualData}><div className="gender-by-part">{parts.map((row) => <div key={row.part}><strong>{copy.part} {row.part}</strong><span title={`${copy.male}: ${format(row.male)}`}><i className="male" style={{ width: `${safePercent(numeric(row.male), Math.max(1,numeric(row.available)))}%` }} /></span><span title={`${copy.female}: ${format(row.female)}`}><i className="female" style={{ width: `${safePercent(numeric(row.female), Math.max(1,numeric(row.available)))}%` }} /></span><span title={`${copy.otherUnknownShort}: ${format(row.other_unknown)}`}><i className="unknown" style={{ width: `${safePercent(numeric(row.other_unknown), Math.max(1,numeric(row.available)))}%` }} /></span></div>)}</div></Panel>
           <PartSummary parts={parts} copy={copy} />
         </div>}
 
         {view === 'age' && <div className="analytics-two-column">
-          <Panel title={copy.ageTitle} description={copy.ageHelp}>{numeric(data.valid_age_count) || numeric(data.missing_age_count) || numeric(data.invalid_age_count) ? <BarList max={maxAge} rows={ages.map((row) => [row.label, numeric(row.count), row.key])} denominator={available} /> : <EmptyState title={copy.noAge} description={copy.ageHelp} />}</Panel>
+          <Panel title={copy.ageTitle} description={copy.ageHelp}>{numeric(data.valid_age_count) || numeric(data.missing_age_count) || numeric(data.invalid_age_count) ? <ColumnChart label={copy.ageTitle} rows={ages.map((row) => [row.label, numeric(row.count), row.key])} max={maxAge} denominator={available} /> : <EmptyState title={copy.noAge} description={copy.ageHelp} />}</Panel>
           <Panel title={copy.ageTitle} description={copy.actualData}><div className="analytics-stat-list"><Stat label={copy.averageAge} value={data.average_age == null ? '—' : format(data.average_age)} /><Stat label={copy.medianAge} value={data.median_age == null ? '—' : format(data.median_age)} /><Stat label={copy.youngestOldest} value={data.youngest_age == null ? '—' : `${format(data.youngest_age)} / ${format(data.oldest_age)}`} /><Stat label={copy.validAges} value={format(data.valid_age_count)} /><Stat label={copy.missingInvalid} value={format(numeric(data.missing_age_count) + numeric(data.invalid_age_count))} /></div></Panel>
         </div>}
 
@@ -232,6 +231,38 @@ function BarList({ rows, max, denominator }: { rows: Array<[string, number, stri
   return <div className="analytics-bar-list">{rows.map(([label,value,key]) => <div key={key} className={`analytics-bar ${key}`} title={`${label}: ${value.toLocaleString('en-IN')} (${safePercent(value, denominator)}%)`}><span><b>{label}</b><small>{value.toLocaleString('en-IN')} · {safePercent(value, denominator)}%</small></span><div><i style={{ width: `${Math.max(value ? 2 : 0, value / max * 100)}%` }} /></div></div>)}</div>
 }
 
+function DonutChart({ rows, total, label, totalLabel }: { rows: Array<[string, number, string]>; total: number; label: string; totalLabel: string }) {
+  let offset = 0
+  const segments = rows.map(([segmentLabel, value, key]) => {
+    const percent = safePercent(value, total)
+    const segment = { segmentLabel, value, key, percent, offset }
+    offset += percent
+    return segment
+  })
+
+  return <div className="analytics-donut-layout">
+    <div className="analytics-donut" role="img" aria-label={`${label}: ${rows.map(([name, value]) => `${name} ${value}`).join(', ')}`}>
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle className="donut-track" cx="60" cy="60" r="48" pathLength="100" />
+        {segments.filter((segment) => segment.value > 0).map((segment) => <circle key={segment.key} className={`donut-segment ${segment.key}`} cx="60" cy="60" r="48" pathLength="100" strokeDasharray={`${segment.percent} ${100 - segment.percent}`} strokeDashoffset={-segment.offset}><title>{segment.segmentLabel}: {segment.value.toLocaleString('en-IN')} ({segment.percent}%)</title></circle>)}
+      </svg>
+      <span><strong>{total.toLocaleString('en-IN')}</strong><small>{totalLabel}</small></span>
+    </div>
+    <div className="analytics-donut-legend">{segments.map((segment) => <div key={segment.key} className={segment.key}><i aria-hidden="true" /><span>{segment.segmentLabel}</span><strong>{segment.value.toLocaleString('en-IN')}</strong><small>{segment.percent}%</small></div>)}</div>
+  </div>
+}
+
+function ColumnChart({ rows, max, denominator, label }: { rows: Array<[string, number, string]>; max: number; denominator: number; label: string }) {
+  return <div className="analytics-column-chart" role="img" aria-label={`${label}: ${rows.map(([name, value]) => `${name} ${value}`).join(', ')}`}>
+    {rows.map(([columnLabel, value, key]) => <div key={key} className={`analytics-column ${key}`} title={`${columnLabel}: ${value.toLocaleString('en-IN')} (${safePercent(value, denominator)}%)`}>
+      <strong>{value.toLocaleString('en-IN')}</strong>
+      <div><i style={{ height: `${Math.max(value ? 4 : 0, value / max * 100)}%` }} /></div>
+      <span>{columnLabel}</span>
+      <small>{safePercent(value, denominator)}%</small>
+    </div>)}
+  </div>
+}
+
 function Stat({ label, value }: { label: string; value: string }) {
   return <div><span>{label}</span><strong>{value}</strong></div>
 }
@@ -244,4 +275,3 @@ function Indicator({ label, value }: { label: string; value: CountValue }) {
 function PartSummary({ parts, copy }: { parts: PartRow[]; copy: typeof COPY[UiLanguage] }) {
   return <Panel title={copy.summaryTitle} description={copy.partHelp} className="part-summary-panel"><div className="data-table-wrap"><table className="analytics-table"><thead><tr><th>{copy.part}</th><th>{copy.expectedLabel}</th><th>{copy.availableLabel}</th><th>{copy.male}</th><th>{copy.female}</th><th>{copy.otherUnknownShort}</th><th>{copy.averageAge}</th><th>{copy.houseGroups}</th><th>{copy.verified}</th><th>{copy.needsReview}</th></tr></thead><tbody>{parts.map((row) => <tr key={row.part}><td><strong>{row.part}</strong></td><td>{format(row.expected)}</td><td>{format(row.available)}</td><td>{format(row.male)}</td><td>{format(row.female)}</td><td>{format(row.other_unknown)}</td><td>{row.average_age == null ? '—' : format(row.average_age)}</td><td>{format(row.house_groups)}</td><td>{format(row.verified)}</td><td>{format(row.needs_review)}</td></tr>)}</tbody></table></div></Panel>
 }
-

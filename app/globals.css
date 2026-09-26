@@ -211,6 +211,37 @@ h1, h2, h3, p { margin-top: 0; }
 .analytics-bar.female i { background: #c44983; }
 .analytics-bar.other i, .analytics-bar.unknown i, .analytics-bar.unknown_invalid i { background: var(--saffron); }
 .analytics-bar.male i { background: #2469b2; }
+.analytics-donut-layout { display: grid; grid-template-columns: minmax(10rem,.85fr) minmax(11rem,1.15fr); align-items: center; gap: 1rem; padding: 1.1rem 1.2rem 1.25rem; }
+.analytics-donut { position: relative; width: min(100%,13rem); aspect-ratio: 1; justify-self: center; }
+.analytics-donut svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.analytics-donut circle { fill: none; stroke-width: 13; }
+.analytics-donut .donut-track { stroke: #e9eef2; }
+.analytics-donut .donut-segment { stroke-linecap: butt; transition: stroke-width .18s ease; }
+.analytics-donut .donut-segment:hover { stroke-width: 16; }
+.analytics-donut .donut-segment.male { stroke: #2469b2; }
+.analytics-donut .donut-segment.female { stroke: #c44983; }
+.analytics-donut .donut-segment.other { stroke: var(--saffron); }
+.analytics-donut .donut-segment.unknown { stroke: #778795; }
+.analytics-donut > span { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
+.analytics-donut > span strong { color: var(--navy-deep); font-size: clamp(1.35rem,3vw,2rem); line-height: 1; }
+.analytics-donut > span small { margin-top: .3rem; color: var(--ink-muted); font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.analytics-donut-legend { display: grid; gap: .55rem; }
+.analytics-donut-legend > div { display: grid; grid-template-columns: .65rem minmax(0,1fr) auto 2.8rem; align-items: center; gap: .55rem; padding: .55rem .65rem; border: 1px solid var(--line); border-radius: .65rem; background: #f8fafb; }
+.analytics-donut-legend i { width: .6rem; height: .6rem; border-radius: 999px; background: #778795; }
+.analytics-donut-legend .male i { background: #2469b2; }
+.analytics-donut-legend .female i { background: #c44983; }
+.analytics-donut-legend .other i { background: var(--saffron); }
+.analytics-donut-legend span, .analytics-donut-legend small { color: var(--ink-muted); font-size: .7rem; }
+.analytics-donut-legend strong { color: var(--navy-deep); font-size: .78rem; }
+.analytics-donut-legend small { text-align: end; }
+.analytics-column-chart { min-height: 19rem; display: grid; grid-template-columns: repeat(7,minmax(2.7rem,1fr)); align-items: end; gap: .55rem; padding: 1.1rem 1.2rem 1.25rem; overflow-x: auto; }
+.analytics-column { min-width: 2.7rem; height: 16rem; display: grid; grid-template-rows: 1.1rem minmax(8rem,1fr) 1.2rem 1rem; align-items: end; gap: .35rem; text-align: center; }
+.analytics-column > strong { color: var(--navy-deep); font-size: .72rem; }
+.analytics-column > div { position: relative; height: 100%; overflow: hidden; border-bottom: 1px solid var(--line-strong); border-radius: .35rem .35rem 0 0; background: linear-gradient(180deg,rgba(23,105,170,.03),rgba(23,105,170,.09)); }
+.analytics-column i { position: absolute; inset-inline: 15%; bottom: 0; display: block; border-radius: .35rem .35rem 0 0; background: linear-gradient(180deg,#4e9ad1,var(--blue)); }
+.analytics-column.unknown_invalid i { background: linear-gradient(180deg,#f0b85b,var(--saffron)); }
+.analytics-column > span { color: var(--ink); font-size: .68rem; font-weight: 800; white-space: nowrap; }
+.analytics-column > small { color: var(--ink-muted); font-size: .64rem; }
 .gender-by-part > div { display: grid; grid-template-columns: 4.7rem repeat(3,minmax(3rem,1fr)); align-items: center; gap: .5rem; }
 .gender-by-part strong { font-size: .76rem; }
 .gender-by-part span { height: .72rem; overflow: hidden; border-radius: 999px; background: #e9eef2; }
@@ -257,6 +288,9 @@ h1, h2, h3, p { margin-top: 0; }
   .comparison-row small { grid-column: 2; text-align: start; }
   .analytics-stat-list { grid-template-columns: 1fr; }
   .gender-by-part > div { grid-template-columns: 4.2rem repeat(3,minmax(2rem,1fr)); }
+  .analytics-donut-layout { grid-template-columns: 1fr; }
+  .analytics-donut { width: min(74vw,12rem); }
+  .analytics-column-chart { padding-inline: .8rem; }
 }
 .quality-layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 1rem; }
 .part-total-list { display: grid; gap: 1rem; padding: 1.2rem; }
@@ -615,4 +649,3 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .review-evidence dl { grid-template-columns: 1fr 1fr; }
   .review-modal > footer button { flex: 1 1 9rem; }
 }
-
