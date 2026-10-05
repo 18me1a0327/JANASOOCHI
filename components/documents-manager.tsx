@@ -200,7 +200,14 @@ export function DocumentsManager() {
         if (saved.error) throw saved.error
         const retryableErrors = new Set(['page_processing_failed', 'page_persistence_failed'])
         const retryable = (saved.data ?? []).filter((savedPage) => savedPage.status === 'requires_review' && retryableErrors.has(savedPage.error_type ?? ''))
-        if (!retryable.length) {
+        // A document row is created before page extraction starts. If the browser
+        // is closed, a page request fails, or finalization is interrupted, the
+        // private PDF and its metadata are still durable. Allow that same file to
+        // resume from its saved page state; only completed documents remain
+        // duplicate-protected.
+        const resumableStatuses = new Set(['failed', 'interrupted', 'processing'])
+        const canResume = retryable.length > 0 || resumableStatuses.has(existing.processing_status)
+        if (!canResume) {
           setError(copy.duplicate)
           return
         }
@@ -256,10 +263,11 @@ export function DocumentsManager() {
         expectedVoterTotal: info.expectedVoterTotal,
         onPage: async (processed) => {
           await savePage(documentId, info.part, processed)
-          await supabase.from('uploaded_pdfs').update({
+          const progressUpdate = await supabase.from('uploaded_pdfs').update({
             processed_pages: processed.state.page,
             updated_at: new Date().toISOString(),
           }).eq('id', documentId)
+          if (progressUpdate.error) throw progressUpdate.error
         },
       })
 
@@ -270,8 +278,15 @@ export function DocumentsManager() {
       await load(1)
     } catch (processError) {
       console.error('Document processing failed', processError)
-      if (documentId) await createClient().from('uploaded_pdfs').update({ processing_status: 'failed', updated_at: new Date().toISOString() }).eq('id', documentId)
-      else if (storagePath) await createClient().storage.from('voter-pdfs').remove([storagePath])
+      if (documentId) {
+        // Keep the durable Storage object and metadata visible for a safe
+        // retry. A processing exception must not turn a persisted source PDF
+        // into an unresumable duplicate or imply that the source was lost.
+        const persisted = await createClient().from('uploaded_pdfs').update({ processing_status: 'interrupted', updated_at: new Date().toISOString() }).eq('id', documentId)
+        if (persisted.error) console.error('Unable to mark stored document interrupted', persisted.error)
+      } else if (storagePath) {
+        await createClient().storage.from('voter-pdfs').remove([storagePath])
+      }
       const message = processError instanceof Error ? processError.message : ''
       setError(message === UNSUPPORTED ? copy.unsupported : message === URDU_BLOCKED ? t('urduBlockedMessage') : message.includes('PDF') ? copy.invalid : copy.failed)
       await load(1)
