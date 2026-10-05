@@ -908,3 +908,15 @@ Then add audited, admin-only quality
 snapshot exports without claiming measured OCR accuracy or Golden readiness
 until the Phase 3 evidence blockers are resolved.
 
+
+
+## PDF Upload Recovery — 2026-10-05
+
+- Root cause addressed: a PDF metadata row and private Storage object could remain durable after an interrupted browser processing/finalization step, but selecting the same file again was rejected as a duplicate unless a narrowly classified page error existed. This made resumable uploads appear stuck.
+- Fix pushed in commit `10e5bf1a4054639cb7cbe65199beb8c8c5ff811d` (`components/documents-manager.tsx`). Stored documents in `failed`, `interrupted`, or abandoned `processing` states can resume from saved page state; completed documents retain duplicate protection. Progress-update errors are now surfaced, and persisted documents are marked `interrupted` rather than made unresumable when processing fails.
+- Supabase inspection confirmed the existing PDFs remain in private `voter-pdfs` Storage with metadata rows; no source PDF or voter data was deleted or changed.
+- Production redeploy/QA was not verifiable from the current workspace tooling; the Cloudflare Git-connected deployment should publish commit `10e5bf1a4054639cb7cbe65199beb8c8c5ff811d` before testing resume in the browser.
+
+## Next Exact Task
+
+After the Cloudflare deployment for `10e5bf1a4054639cb7cbe65199beb8c8c5ff811d` is live, select the same previously interrupted PDF and verify that it resumes, updates page/record counts, and remains visible after refresh. Then test one new valid PDF only if a safe non-production fixture is available.
