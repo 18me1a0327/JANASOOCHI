@@ -976,6 +976,9 @@ discovery and statewide application ingestion remain intentionally deferred.
   every pilot document scoped; 3,454 expected slots and 4,175 logical rows
   preserved; zero orphan voter rows. Supabase security advisor reports only
   the pre-existing leaked-password-protection warning.
+- Regenerated `src/database.types.ts` from the live Supabase schema so the new
+  geography/revision tables and ownership columns are available to the next
+  dynamic-selector implementation.
 
 ### Application and deployment boundary
 
@@ -986,6 +989,9 @@ discovery and statewide application ingestion remain intentionally deferred.
   statewide Part list.
 - No statewide PDFs were ingested, no OCR was rerun, no voter values were
   changed, and no production deployment was attempted in this migration step.
+- Local regression gate after type regeneration: TypeScript PASS, lint PASS,
+  web tests 98 PASS / 1 existing SKIP, and Cloudflare build PASS with only the
+  known sandbox Wrangler log-file EPERM warning.
 - Old OCR pipeline restoration remains unselected pending comparison against
   the current Phase 2 contracts and a real GOLD sample; the current pipeline
   and evidence/audit chain were preserved.
