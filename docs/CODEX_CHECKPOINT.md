@@ -33,16 +33,28 @@
   SKIP; TypeScript PASS; lint PASS; vinext Cloudflare build PASS. The build
   emitted the known sandbox Wrangler log-directory EPERM warning but completed
   and generated route types successfully.
-- RESPONSIVE QA / PRODUCTION QA: pending the single GitHub push and Cloudflare
-  deployment. CSS breakpoints cover 375/768/1440 and the summary table has
-  intentional contained horizontal scrolling; production visual verification
-  remains required.
+- RESPONSIVE QA / PRODUCTION QA: PASS on the live Worker at commit
+  `2ea18665f526aea7decdf0081627566492483169` (Cloudflare build
+  `f0be2a8d-a4f5-475d-9650-32b0cb0caa10`). Production shows 3,454 expected and
+  2,733 available canonical voters, all seven analytics views, no query error,
+  working Part/gender/age filters, EN/TE/UR UI localization without Hindi, and
+  the truthful one-revision empty state. Exact 375, 768 and 1,440 px checks had
+  no page overflow; KPI/filter grids changed from one to two to four columns as
+  intended, with contained tab/table scrolling where required. Browser console
+  inspection reported no warnings or errors.
+- VIEWER/RLS: PASS for the preserved authorization boundary. The route remains
+  under the existing Admin layout, and a rollback-only Viewer-role database
+  probe confirmed `is_admin() = false` and the analytics RPC denied execution.
 - DATABASE ADVISORS: no new function/RLS warning was reported. Existing Auth
   leaked-password protection remains disabled; existing unused-index notices
   remain informational and were not changed in this focused task.
 - No voter, source, Review, verification or correction row was mutated.
-- NEXT EXACT TASK: deploy and smoke-test this Data Insights commit once; after
-  production PASS, return to Phase 2F human GOLD verification.
+- DEPLOYMENT: PASS at
+  `https://janasoochi.anandkalidindi28.workers.dev/data-insights`. The GitHub
+  build completed successfully; local Wrangler deploy attempts were blocked by
+  sandbox path traversal before upload and did not create another deployment.
+- NEXT EXACT TASK: return to Phase 2F human GOLD verification. Do not run OCR
+  accuracy comparison until authorized human GOLD values exist.
 
 ## DashStack-inspired workspace refinement — 2026-09-24
 
@@ -908,15 +920,81 @@ Then add audited, admin-only quality
 snapshot exports without claiming measured OCR accuracy or Golden readiness
 until the Phase 3 evidence blockers are resolved.
 
+## Stage 1A — Andhra Pradesh statewide architecture (2026-10-09)
 
+Status: PARTIAL — additive geography foundation applied; statewide Part
+discovery and statewide application ingestion remain intentionally deferred.
 
-## PDF Upload Recovery — 2026-10-05
+### Recovery and baseline
 
-- Root cause addressed: a PDF metadata row and private Storage object could remain durable after an interrupted browser processing/finalization step, but selecting the same file again was rejected as a duplicate unless a narrowly classified page error existed. This made resumable uploads appear stuck.
-- Fix pushed in commit `10e5bf1a4054639cb7cbe65199beb8c8c5ff811d` (`components/documents-manager.tsx`). Stored documents in `failed`, `interrupted`, or abandoned `processing` states can resume from saved page state; completed documents retain duplicate protection. Progress-update errors are now surfaced, and persisted documents are marked `interrupted` rather than made unresumable when processing fails.
-- Supabase inspection confirmed the existing PDFs remain in private `voter-pdfs` Storage with metadata rows; no source PDF or voter data was deleted or changed.
-- Production redeploy/QA was not verifiable from the current workspace tooling; the Cloudflare Git-connected deployment should publish commit `10e5bf1a4054639cb7cbe65199beb8c8c5ff811d` before testing resume in the browser.
+- Workspace read/write/command execution is functional in this session.
+- The local checkout has no usable Git history; the GitHub `main` repository is
+  the source of truth for prior application commits.
+- Existing upload-resume fix remains preserved in application commit
+  `10e5bf1a4054639cb7cbe65199beb8c8c5ff811d`; its checkpoint documentation is
+  in commit `c9fa98b26c3988774a9565a548af5fc1ef857406`. Production execution of
+  that resume path is not claimed here because a safe interrupted upload could
+  not be generated without modifying source data.
+- Baseline before migration: 3,454 expected logical slots; 4,175 logical rows
+  including 721 quarantined/legacy rows; 6,727 voter/source rows; 8 EN/TE pilot
+  PDFs; 4358 review issues (4267 open, 91 resolved); 88 verified voter rows;
+  zero valid Urdu PDFs.
 
-## Next Exact Task
+### Official geography
 
-After the Cloudflare deployment for `10e5bf1a4054639cb7cbe65199beb8c8c5ff811d` is live, select the same previously interrupted PDF and verify that it resumes, updates page/record counts, and remains visible after refresh. Then test one new valid PDF only if a safe non-production fixture is available.
+- `data/reference/ap_pc_ac_official.csv` now validates to exactly 25 PCs and
+  175 ACs, with no duplicate AC number or PC/AC pair. Reservation totals are
+  4 SC + 1 ST PCs and 29 SC + 7 ST ACs.
+- The source-period distinction is documented in
+  `docs/AP_OFFICIAL_DATA_SOURCES.md`: ECI 2008 Schedule III is historical
+  combined-state material, while the missing AC 41 and AC 93 rows are retained
+  from the official Andhra Pradesh Reorganisation Act 2014 Second Schedule.
+- Supplied 2026 PDF header pages directly verify Parts 227–230 as AC 70 Nuzvid
+  (GEN), PC 10 Eluru (GEN), 2026 SIR Draft Roll Revision 1, in English and
+  Telugu. Header totals are 1,014, 973, 888 and 579. Urdu files are invalid
+  HTML/404 payloads and remain blocked.
+- No statewide, revision-independent authoritative Part catalogue was found;
+  no missing Part rows or statewide totals were fabricated.
+
+### Database migration
+
+- Applied Supabase migration `statewide_ap_geography_foundation` from
+  `supabase/migrations/017_statewide_ap_geography_foundation.sql`.
+- Added RLS-protected `states`, `ap_geography_reference`,
+  `parliamentary_constituencies`, `assembly_constituencies`,
+  `electoral_revisions`, and revision/AC-scoped `electoral_parts` tables.
+- Imported 25 PC / 175 AC reference rows and seeded Andhra Pradesh, PC 10,
+  AC 70, the 2026 SIR draft revision, and Parts 227–230.
+- Added nullable geography/revision ownership to existing uploaded PDFs,
+  logical voters, voter records and expectations. Existing source rows now
+  have verified pilot geography metadata; source values, PDFs, voter values,
+  correction history and verification history were not overwritten.
+- Replaced pilot-global logical identity uniqueness with revision + geography +
+  serial uniqueness. Removed only pilot-only Part checks; language, source
+  integrity, RLS and audit controls remain in place.
+- Live verification after migration: 25 PCs, 175 ACs, 175 reference rows;
+  every pilot document scoped; 3,454 expected slots and 4,175 logical rows
+  preserved; zero orphan voter rows. Supabase security advisor reports only
+  the pre-existing leaked-password-protection warning.
+
+### Application and deployment boundary
+
+- Search, Documents, Review, Data Quality and Data Insights still present their
+  legacy 227–230 UI filters and ingestion contract. The database foundation is
+  ready for dynamic statewide selectors, but those application changes require
+  a separate focused implementation and must not be faked with a hard-coded
+  statewide Part list.
+- No statewide PDFs were ingested, no OCR was rerun, no voter values were
+  changed, and no production deployment was attempted in this migration step.
+- Old OCR pipeline restoration remains unselected pending comparison against
+  the current Phase 2 contracts and a real GOLD sample; the current pipeline
+  and evidence/audit chain were preserved.
+
+### Next exact task
+
+Implement dynamic geography selectors and scoped queries in Search, Documents,
+Review, Data Quality and Data Insights using the new tables, while retaining
+the pilot behavior and requiring explicit geography/revision scope before any
+large statewide query. Then add a safe admin-only statewide Part import path
+from verified official roll headers (no CAPTCHA/API bypass).
+
