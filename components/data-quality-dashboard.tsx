@@ -6,6 +6,7 @@ import { AlertOctagon, BarChart3, CheckCircle2, CircleDashed, Filter, LoaderCirc
 import { buildQualityAnalytics, count, percent, type CountValue, type PartLanguageQualityInput, type QualitySummaryInput } from '../lib/data-quality/metrics'
 import { createClient } from '../lib/supabase/client'
 import { useLanguage } from './language-provider'
+import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, scopeHasNarrowing, type GeographyScope } from './geography-scope'
 import { ReconciliationDrilldown } from './reconciliation-drilldown'
 import { MetricCard, Panel } from './ui-shell'
 
@@ -41,19 +42,28 @@ export function DataQualityDashboard() {
   const [parts, setParts] = useState<PartQuality[]>([])
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState('')
+  const [scope, setScope] = useState<GeographyScope>(EMPTY_GEOGRAPHY_SCOPE)
 
   const load = useCallback(async () => {
+    if (scopeHasNarrowing(scope) && !scope.partId) {
+      setSummary(null)
+      setOverallSummary(null)
+      setParts([])
+      setError('Choose a verified Part before querying this narrowed geography.')
+      setBusy(false)
+      return
+    }
     setBusy(true)
     setError('')
     try {
       const supabase = createClient()
       const [summaryResult, overallResult, partsResult] = await Promise.all([
         supabase.rpc('get_data_quality_summary' as never, {
-          p_part: part ? Number(part) : null,
+          p_part: scope.partNumber ?? (part ? Number(part) : null),
           p_language: sourceLanguage === 'all' ? null : sourceLanguage,
         } as never),
         supabase.rpc('get_data_quality_summary' as never, {
-          p_part: part ? Number(part) : null,
+          p_part: scope.partNumber ?? (part ? Number(part) : null),
           p_language: null,
         } as never),
         supabase.rpc('get_part_language_quality' as never, {} as never),
@@ -76,7 +86,7 @@ export function DataQualityDashboard() {
     } finally {
       setBusy(false)
     }
-  }, [copy.unavailable, part, sourceLanguage])
+  }, [copy.unavailable, part, scope, sourceLanguage])
 
   useEffect(() => { void load() }, [load])
 
@@ -111,8 +121,9 @@ export function DataQualityDashboard() {
   return (
     <>
       <nav className="insights-tabs" aria-label="Data insights sections">{(['overview', 'extraction', 'accuracy', 'languages', 'reconciliation', 'revisions'] as QualityView[]).map((view) => <button key={view} type="button" className={qualityView === view ? 'active' : ''} onClick={() => setQualityView(view)}>{view[0].toUpperCase() + view.slice(1)}</button>)}</nav>
+      <GeographyScopeSelector value={scope} onChange={(next) => { setScope(next); setPart(next.partNumber ? String(next.partNumber) : ''); setSummary(null); setOverallSummary(null) }} />
       <div className="quality-toolbar">
-        <div className="quality-filter"><Filter aria-hidden="true" /><select aria-label="Revision" disabled><option>Current revision</option></select><select aria-label={t('part')} value={part} onChange={(event) => setPart(event.target.value)}><option value="">{t('allSupportedParts')}</option><option>227</option><option>228</option><option>229</option><option>230</option></select><select aria-label={t('sourceLanguage')} value={sourceLanguage} onChange={(event) => setSourceLanguage(event.target.value)}><option value="all">{t('allLanguages')}</option><option value="en">{t('englishSource')}</option><option value="te">{t('teluguSource')}</option><option value="ur">{t('urduSource')}</option></select></div>
+        <div className="quality-filter"><Filter aria-hidden="true" /><select aria-label={t('part')} value={part} disabled={Boolean(scope.partId)} onChange={(event) => setPart(event.target.value)}><option value="">{t('allSupportedParts')}</option>{scope.partId && scope.partNumber ? <option>{scope.partNumber}</option> : null}</select><select aria-label={t('sourceLanguage')} value={sourceLanguage} onChange={(event) => setSourceLanguage(event.target.value)}><option value="all">{t('allLanguages')}</option><option value="en">{t('englishSource')}</option><option value="te">{t('teluguSource')}</option><option value="ur">{t('urduSource')}</option></select></div>
         <button className="button secondary small" type="button" onClick={() => void load()} disabled={busy}>{busy ? <LoaderCircle className="spin" aria-hidden="true" /> : <RefreshCw aria-hidden="true" />}{copy.reload}</button>
       </div>
       {error && <p className="error-notice" role="alert">{error}</p>}
@@ -172,7 +183,7 @@ export function DataQualityDashboard() {
         <Panel title={copy.ocrTitle}><div className="quality-evidence-note"><BarChart3 aria-hidden="true" /><p>{copy.ocrUnavailable}</p></div></Panel>
       </div>}
       {qualityView === 'extraction' && <Panel title="Extraction pipeline" description="Live database counts; no OCR accuracy is inferred."><div className="quality-bars"><QualityBarRow label="Source records extracted" value={number(extracted)} percent={100} /><QualityBarRow label="Cards extracted / detected" value={`${number(summary?.extracted_voter_cards)} / ${number(summary?.expected_voter_cards)}`} percent={Number(summary?.expected_voter_cards) ? Math.round(Number(summary?.extracted_voter_cards) / Number(summary?.expected_voter_cards) * 1000) / 10 : 0} /><QualityBarRow label="Source records reconciled" value={number(summary?.linked_source_records)} percent={Number(extracted) ? Math.round(Number(summary?.linked_source_records) / Number(extracted) * 1000) / 10 : 0} /><QualityBarRow label="Verified logical voters" value={number(verified)} percent={expected ? Math.round(verified / expected * 1000) / 10 : 0} /></div></Panel>}
-      {(qualityView === 'overview' || qualityView === 'reconciliation') && <ReconciliationDrilldown part={part} />}
+      {(qualityView === 'overview' || qualityView === 'reconciliation') && <ReconciliationDrilldown part={scope.partNumber ? String(scope.partNumber) : part} />}
       {qualityView === 'revisions' && <Panel title={revisionViewLabel} description="Added, removed, changed and unchanged counts require two valid revisions."><div className="quality-evidence-note"><CircleDashed aria-hidden="true" /><p>Revision comparison will be available when another electoral roll revision is imported.</p></div></Panel>}
     </>
   )

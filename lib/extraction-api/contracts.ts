@@ -1,6 +1,7 @@
 export const SUPPORTED_EXTRACTION_PARTS = [227, 228, 229, 230] as const
 
-export type ExtractionPart = (typeof SUPPORTED_EXTRACTION_PARTS)[number]
+/** Pilot examples retained for UI/tests; extraction accepts verified statewide Part numbers. */
+export type ExtractionPart = number
 export type ExtractionSourceLanguage = 'en' | 'te' | 'ur'
 export type ExtractionJobStatus =
   | 'queued'

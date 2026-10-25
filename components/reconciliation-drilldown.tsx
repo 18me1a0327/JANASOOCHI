@@ -139,7 +139,7 @@ export function ReconciliationDrilldown({ part }: Readonly<{ part: string }>) {
   return <section className="reconciliation-section">
     <div className="section-heading"><div><h2>{copy.title}</h2><p>{copy.lead}</p></div></div>
     <div className="metric-grid reconciliation-metrics">
-      <MetricCard label={copy.expected} value={totals.expectedLogicalVoters.toLocaleString('en-IN')} note="Parts 227–230" />
+      <MetricCard label={copy.expected} value={totals.expectedLogicalVoters.toLocaleString('en-IN')} note="Current verified scope" />
       <MetricCard label={copy.paired} value={totals.pairedSlots.toLocaleString('en-IN')} note="Part + Serial" />
       <MetricCard label={copy.reconciled} value={totals.reconciledSlots.toLocaleString('en-IN')} note={copy.lead} tone="positive" />
       <MetricCard label={copy.unlinked} value={totals.unlinkedSourceRecords.toLocaleString('en-IN')} note={copy.evidence} tone={totals.unlinkedSourceRecords ? 'warning' : 'positive'} />

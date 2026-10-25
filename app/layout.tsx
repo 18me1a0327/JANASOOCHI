@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     template: "%s | JANASOOCHI",
   },
   description:
-    "Private electoral-roll search, source verification and data-quality workspace for Pallerlamudi Parts 227–230.",
+    "Statewide Andhra Pradesh electoral-roll search, source verification and data-quality workspace.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [

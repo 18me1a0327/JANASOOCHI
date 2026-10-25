@@ -8,6 +8,7 @@ import { invalidateDataCache } from './data'
 import { supabase } from './lib'
 import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewErrorContext, reviewFieldsChanged, reviewInitialFields, reviewMutationErrorMessage } from './review'
 import type { ReviewCategory, ReviewCursor, ReviewPageRow } from './review'
+import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, scopeHasNarrowing, type GeographyScope } from '../components/geography-scope'
 
 type Lang = 'en' | 'te' | 'ur'
 type ReviewStatus = 'all' | 'open' | 'resolved' | 'dismissed'
@@ -55,6 +56,7 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [scope, setScope] = useState<GeographyScope>(EMPTY_GEOGRAPHY_SCOPE)
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
   const cursor = cursors[page] ?? null
   const hasUnsavedChanges = edit ? reviewFieldsChanged(edit, fields) : false
@@ -67,6 +69,12 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
   }, [router])
 
   const load = useCallback(async () => {
+    if (scopeHasNarrowing(scope) && !scope.partId) {
+      setRows([])
+      setTotal(0)
+      setError('Choose a verified Part before querying this narrowed geography.')
+      return
+    }
     setBusy(true)
     setError('')
     const queryContext = { page, pageSize, category, part, sourceLanguage, status, severity, searchTerm }
@@ -78,7 +86,7 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
         p_severity: severity,
         p_category: category,
         p_language: sourceLanguage === 'all' ? null : sourceLanguage,
-        p_part: part === 'all' ? null : Number(part),
+        p_part: scope.partNumber ?? (part === 'all' ? null : Number(part)),
         p_search: searchTerm || null,
         p_limit: pageSize,
         p_after_created_at: cursor?.createdAt ?? null,
@@ -94,7 +102,7 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
       if (classified.kind === 'session') await expireSession()
       else setError(classified.message)
     } finally { setBusy(false) }
-  }, [category, cursor?.createdAt, cursor?.issueId, expireSession, page, pageSize, part, searchTerm, severity, sourceLanguage, status])
+  }, [category, cursor?.createdAt, cursor?.issueId, expireSession, page, pageSize, part, scope, searchTerm, severity, sourceLanguage, status])
 
   useEffect(() => { void load() }, [load])
 
@@ -162,8 +170,9 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
     <div className="summary-strip"><span>{busy && !rows.length ? 'Loading…' : `${total.toLocaleString()} ${copy.issues}`}</span><span>{copy.retained}</span></div>
     <form className="review-search" onSubmit={applySearch}><label><span>{copy.search}</span><div><Search aria-hidden="true" /><input value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} maxLength={120} placeholder={copy.searchHint} /></div></label><button className="primary compact" type="submit" disabled={busy}>{copy.search}</button>{(searchDraft || searchTerm) && <button className="secondary compact" type="button" onClick={clearSearch}>{copy.clear}</button>}</form>
     <div className="review-filters">{categories.map((item) => <button key={item} className={category === item ? 'active' : ''} onClick={() => selectCategory(item)}>{CATEGORY_LABELS[item]}</button>)}</div>
+    <GeographyScopeSelector value={scope} onChange={(next) => { setScope(next); setPart(next.partNumber ? String(next.partNumber) : 'all'); resetQueue() }} />
     <div className="review-toolbar">
-      <label>{copy.part}<select value={part} onChange={(event) => { setPart(event.target.value); resetQueue() }}><option value="all">{copy.all} 227–230</option>{[227, 228, 229, 230].map((value) => <option key={value}>{value}</option>)}</select></label>
+      <label>{copy.part}<select value={part} disabled={Boolean(scope.partId)} onChange={(event) => { setPart(event.target.value); resetQueue() }}><option value="all">{copy.all} Parts</option>{scope.partId && scope.partNumber ? <option>{scope.partNumber}</option> : null}</select></label>
       <label>{copy.source}<select value={sourceLanguage} onChange={(event) => { setSourceLanguage(event.target.value); resetQueue() }}><option value="all">{copy.languages}</option><option value="en">English</option><option value="te">తెలుగు</option><option value="ur">اردو</option></select></label>
       <label>{copy.status}<select value={status} onChange={(event) => { setStatus(event.target.value as ReviewStatus); resetQueue() }}><option value="open">Open</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option><option value="all">{copy.all}</option></select></label>
       <label>{copy.severity}<select value={severity} onChange={(event) => { setSeverity(event.target.value as ReviewSeverity); resetQueue() }}><option value="all">{copy.all}</option><option value="critical">Critical</option><option value="needs_review">Needs Review</option><option value="informational">Informational</option></select></label>

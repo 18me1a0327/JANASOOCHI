@@ -345,7 +345,7 @@ export function SourcePageViewer({ pdfId }: Readonly<{ pdfId: string }>) {
           <span className="source-page-viewer__eyebrow">Authorized uploaded source</span>
           <h1 id="source-viewer-title">{documentInfo?.filename ?? "Original PDF page"}</h1>
           <p>
-            {documentInfo ? `Part ${documentInfo.part_number}` : "Pallerlamudi electoral roll"}
+            {documentInfo ? `Part ${documentInfo.part_number}` : "Andhra Pradesh electoral roll"}
             {documentInfo?.revision_identifier ? ` · ${documentInfo.revision_identifier}` : ""}
           </p>
         </div>

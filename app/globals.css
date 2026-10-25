@@ -649,3 +649,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .review-evidence dl { grid-template-columns: 1fr 1fr; }
   .review-modal > footer button { flex: 1 1 9rem; }
 }
+
+
+.geography-scope { margin: 0 0 1rem; padding: .85rem 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: #fbfdff; }
+.geography-scope-heading { display: flex; align-items: center; gap: .55rem; margin-bottom: .7rem; color: var(--blue); }
+.geography-scope-heading > span { display: grid; gap: .15rem; flex: 1; }
+.geography-scope-heading strong { color: var(--ink); font-size: .82rem; }
+.geography-scope-heading small { color: var(--ink-muted); font-size: .7rem; }
+.geography-scope-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .7rem; }
+.geography-scope-grid label { display: grid; gap: .3rem; color: var(--ink-muted); font-size: .72rem; font-weight: 800; }
+.geography-scope-grid select { min-width: 0; min-height: 2.45rem; padding: 0 .6rem; border: 1px solid var(--line-strong); border-radius: .6rem; color: var(--ink); background: #fff; }
+.geography-scope-grid select:focus { outline: 0; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(23,105,170,.11); }
+.geography-scope .inline-notice { margin: .65rem 0 0; }
+@media (max-width: 1050px) { .geography-scope-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 650px) { .geography-scope-grid { grid-template-columns: 1fr; } }
