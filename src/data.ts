@@ -23,7 +23,6 @@ export async function searchVoters(filters: Filters) {
     let query = supabase
       .from('voter_records')
       .select('*')
-      .in('part_number', [227, 228, 229, 230])
       .in('pdf_id', activeIds)
       .in('original_language', ['en', 'te', 'ur'])
       .order('part_number')
@@ -56,7 +55,6 @@ export async function fetchDocuments(ids?: string[], options:{activeOnly?:boolea
   let query = supabase
     .from('uploaded_pdfs')
     .select('*')
-    .in('part_number', [227, 228, 229, 230])
     .order('part_number')
 
   if (ids) query = query.in('id', ids)

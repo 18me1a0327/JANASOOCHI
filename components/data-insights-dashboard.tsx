@@ -6,6 +6,7 @@ import { BarChart3, CircleAlert, Filter, LoaderCircle, RefreshCw } from 'lucide-
 import { EXPECTED_LOGICAL_TOTAL, safePercent } from '../lib/data-insights/metrics'
 import { createClient } from '../lib/supabase/client'
 import { useLanguage, type UiLanguage } from './language-provider'
+import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, scopeHasNarrowing, type GeographyScope } from './geography-scope'
 import { EmptyState, MetricCard, PageHeader, Panel } from './ui-shell'
 
 type View = 'overview' | 'parts' | 'gender' | 'age' | 'households' | 'indicators' | 'revisions'
@@ -66,7 +67,7 @@ type InsightsRow = {
 
 const COPY = {
   en: {
-    eyebrow: 'CURRENT ELECTORAL ROLL · PARTS 227–230', title: 'Voter analytics', lead: 'Demographic and register insights from canonical logical voters. English and Telugu source editions are never counted as additional people.',
+    eyebrow: 'ANDHRA PRADESH · STATEWIDE SCOPE', title: 'Voter analytics', lead: 'Demographic and register insights from canonical logical voters. English and Telugu source editions are never counted as additional people.',
     tabs: ['Overview', 'Parts', 'Gender', 'Age', 'Households', 'Data indicators', 'Revision comparison'], currentRevision: 'Current revision', revision: 'Revision', allParts: 'All Parts', allGenders: 'All genders', male: 'Male', female: 'Female', otherUnknown: 'Other / Unknown', allAges: 'All ages', refresh: 'Refresh analytics', loading: 'Loading voter analytics…', unverified: 'unverified', filtersAria: 'Voter analytics filters',
     expected: 'Expected logical voters', available: 'Available canonical records', averageAge: 'Average age', houseGroups: 'House-number groups', verified: 'Verified voters', needsReview: 'Needs review', critical: 'Unresolved critical', youngestOldest: 'Youngest / oldest',
     partTitle: 'Voters by Part', partHelp: 'Expected is the official register structure. Available is the filtered canonical source population.', genderTitle: 'Gender distribution', genderHelp: 'Unknown values remain visible and are never reassigned to Male or Female.', ageTitle: 'Age distribution', ageHelp: 'Average and median use valid recorded ages from 18 through 125 only.', houseTitle: 'Voters per house-number group', houseHelp: 'Matching house numbers are aggregate groups only; no family relationship is inferred.', summaryTitle: 'Part summary',
@@ -113,6 +114,7 @@ export function DataInsightsDashboard() {
   const copy = COPY[language]
   const [view, setView] = useState<View>('overview')
   const [part, setPart] = useState('')
+  const [scope, setScope] = useState<GeographyScope>(EMPTY_GEOGRAPHY_SCOPE)
   const [gender, setGender] = useState('')
   const [age, setAge] = useState('')
   const [data, setData] = useState<InsightsRow | null>(null)
@@ -120,11 +122,17 @@ export function DataInsightsDashboard() {
   const [error, setError] = useState('')
 
   const load = useCallback(async () => {
+    if (scopeHasNarrowing(scope) && !scope.partId) {
+      setData(null)
+      setError('Choose a verified Part before querying this narrowed geography.')
+      setBusy(false)
+      return
+    }
     setBusy(true)
     setError('')
     try {
       const result = await createClient().rpc('get_voter_insights_v1' as never, {
-        p_part: part ? Number(part) : null,
+        p_part: scope.partNumber ?? (part ? Number(part) : null),
         p_gender: gender || null,
         p_age_group: age || null,
       } as never) as unknown as { data: InsightsRow[] | null; error: { message: string } | null }
@@ -137,7 +145,7 @@ export function DataInsightsDashboard() {
     } finally {
       setBusy(false)
     }
-  }, [age, copy.error, gender, part])
+  }, [age, copy.error, gender, part, scope])
 
   useEffect(() => { void load() }, [load])
 
@@ -158,10 +166,11 @@ export function DataInsightsDashboard() {
       <nav className="insights-tabs" aria-label={copy.title}>
         {VIEW_KEYS.map((key, index) => <button key={key} type="button" className={view === key ? 'active' : ''} onClick={() => setView(key)}>{copy.tabs[index]}</button>)}
       </nav>
+      <GeographyScopeSelector value={scope} onChange={(next) => { setScope(next); setPart(next.partNumber ? String(next.partNumber) : ''); setData(null) }} />
       <section className="analytics-filter-bar" aria-label={copy.filtersAria}>
         <Filter aria-hidden="true" />
         <label><span>{copy.revision}</span><select disabled><option>{copy.currentRevision}</option></select></label>
-        <label><span>{copy.part}</span><select value={part} onChange={(event) => setPart(event.target.value)}><option value="">{copy.allParts}</option><option>227</option><option>228</option><option>229</option><option>230</option></select></label>
+        <label><span>{copy.part}</span><select value={part} disabled={Boolean(scope.partId)} onChange={(event) => setPart(event.target.value)}><option value="">{copy.allParts}</option>{scope.partId && scope.partNumber ? <option>{scope.partNumber}</option> : null}</select></label>
         <label><span>{copy.tabs[2]}</span><select value={gender} onChange={(event) => setGender(event.target.value)}><option value="">{copy.allGenders}</option><option value="male">{copy.male}</option><option value="female">{copy.female}</option><option value="other_unknown">{copy.otherUnknown}</option></select></label>
         <label><span>{copy.tabs[3]}</span><select value={age} onChange={(event) => setAge(event.target.value)}><option value="">{copy.allAges}</option>{[['18_25','18–25'],['26_35','26–35'],['36_45','36–45'],['46_60','46–60'],['61_75','61–75'],['76_plus','76+'],['unknown_invalid',copy.missingInvalid]].map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <button className="button secondary small" type="button" onClick={() => void load()} disabled={busy}>{busy ? <LoaderCircle className="spin" aria-hidden="true" /> : <RefreshCw aria-hidden="true" />}{copy.refresh}</button>

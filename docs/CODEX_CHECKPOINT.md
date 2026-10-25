@@ -1004,3 +1004,26 @@ the pilot behavior and requiring explicit geography/revision scope before any
 large statewide query. Then add a safe admin-only statewide Part import path
 from verified official roll headers (no CAPTCHA/API bypass).
 
+
+## Statewide geography application bridge — 2026-10-25
+
+- STATUS: PARTIAL — the additive AP geography schema and pilot metadata remain intact; the active Next.js routes now expose live geography selectors without inventing statewide Part rows.
+- SHARED SELECTOR: `components/geography-scope.tsx` reads the RLS-protected `states`, `parliamentary_constituencies`, `assembly_constituencies`, `electoral_revisions` and `electoral_parts` tables. Child options are filtered by parent, and a narrowed PC/AC/revision scope requires a verified Part before legacy Part-scoped RPCs run. Part options are also constrained to the selected PC's AC set.
+- SEARCH: selector is integrated and selected verified Part scope is passed into the existing search query. The pilot 227–230 behavior remains available through live database options; no hard-coded statewide Part list was added.
+- DOCUMENTS: selector is integrated for listing and Admin upload. Upload now requires a verified Part, checks the PDF-detected Part against that scope, performs duplicate detection within the Part/language scope, and persists state/PC/AC/Part/revision ownership metadata on `uploaded_pdfs`.
+- REVIEW / DATA QUALITY / DATA INSIGHTS: selectors are integrated and pass verified Part scope to existing paginated/aggregate RPCs. Narrowed parent scopes stop safely with an explicit “choose a verified Part” state instead of querying an unscoped statewide population. Existing review reason/audit, Data Quality, and logical-voter counting behavior is preserved.
+- EXTRACTION CONTRACT: Part detection and extraction contracts now accept validated statewide Part numbers; pilot totals remain reference expectations only. No OCR was rerun.
+- UI COPY: active shell/search/analytics/document/source fallbacks now describe Andhra Pradesh verified scope; the 3,454 figure is labeled as pilot logical slots/reference scope, not statewide population.
+- VALIDATION: TypeScript PASS; lint PASS; focused Vitest `pnpm exec vitest run --pool=threads --no-file-parallelism` PASS (99 tests, 1 existing skip); Cloudflare build PASS. Wrangler emitted only the known sandbox log-file EPERM warning.
+- DATA SAFETY: no voter values, source PDFs, review issues, corrections, verification events, or audit rows were changed or deleted. No statewide PDFs or fabricated Part records were added.
+- DEPLOYMENT: no Cloudflare/Netlify deployment or production smoke was run in this scoped change; local validation only.
+
+### Remaining statewide work
+
+- Existing Supabase RPCs still accept Part-number scope rather than full PC/AC/revision IDs. Full parent-level server-side aggregation must be added before claiming complete statewide query support.
+- There is still no authoritative statewide revision/AC-specific Part catalogue. A safe Admin-only import workflow from verified official roll headers remains required; missing Parts must not be fabricated.
+- Legacy `src/App.tsx` strings remain for the older client surface; active App Router pages use the new selector bridge.
+
+### Next exact task
+
+Add versioned, server-side PC/AC/revision-scoped RPCs (or equivalent joins) and an Admin-only verified Part metadata import workflow, then deploy and run focused production QA.

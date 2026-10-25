@@ -14,6 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
+      ap_geography_reference: {
+        Row: {
+          ac_name: string
+          ac_name_source: string
+          ac_number: number
+          ac_reserved_category: string
+          id: number
+          pc_name: string
+          pc_name_source: string
+          pc_number: number
+          pc_reserved_category: string
+          source_document: string
+          source_page: number | null
+          source_reference: string
+          state_code: string
+          verification_status: string
+        }
+        Insert: {
+          ac_name: string
+          ac_name_source: string
+          ac_number: number
+          ac_reserved_category: string
+          id?: never
+          pc_name: string
+          pc_name_source: string
+          pc_number: number
+          pc_reserved_category: string
+          source_document: string
+          source_page?: number | null
+          source_reference: string
+          state_code: string
+          verification_status: string
+        }
+        Update: {
+          ac_name?: string
+          ac_name_source?: string
+          ac_number?: number
+          ac_reserved_category?: string
+          id?: never
+          pc_name?: string
+          pc_name_source?: string
+          pc_number?: number
+          pc_reserved_category?: string
+          source_document?: string
+          source_page?: number | null
+          source_reference?: string
+          state_code?: string
+          verification_status?: string
+        }
+        Relationships: []
+      }
+      assembly_constituencies: {
+        Row: {
+          ac_number: number
+          created_at: string
+          id: string
+          name: string
+          name_source: string
+          parliamentary_constituency_id: string
+          reserved_category: string
+          state_id: string
+        }
+        Insert: {
+          ac_number: number
+          created_at?: string
+          id?: string
+          name: string
+          name_source: string
+          parliamentary_constituency_id: string
+          reserved_category: string
+          state_id: string
+        }
+        Update: {
+          ac_number?: number
+          created_at?: string
+          id?: string
+          name?: string
+          name_source?: string
+          parliamentary_constituency_id?: string
+          reserved_category?: string
+          state_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assembly_constituencies_parliamentary_constituency_id_fkey"
+            columns: ["parliamentary_constituency_id"]
+            isOneToOne: false
+            referencedRelation: "parliamentary_constituencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assembly_constituencies_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -104,15 +203,112 @@ export type Database = {
         }
         Relationships: []
       }
+      electoral_parts: {
+        Row: {
+          assembly_constituency_id: string
+          created_at: string
+          expected_voter_total: number | null
+          geography_verification_status: string
+          id: string
+          part_number: number
+          polling_station_address: string | null
+          polling_station_name: string | null
+          revision_id: string
+        }
+        Insert: {
+          assembly_constituency_id: string
+          created_at?: string
+          expected_voter_total?: number | null
+          geography_verification_status?: string
+          id?: string
+          part_number: number
+          polling_station_address?: string | null
+          polling_station_name?: string | null
+          revision_id: string
+        }
+        Update: {
+          assembly_constituency_id?: string
+          created_at?: string
+          expected_voter_total?: number | null
+          geography_verification_status?: string
+          id?: string
+          part_number?: number
+          polling_station_address?: string | null
+          polling_station_name?: string | null
+          revision_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "electoral_parts_assembly_constituency_id_fkey"
+            columns: ["assembly_constituency_id"]
+            isOneToOne: false
+            referencedRelation: "assembly_constituencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "electoral_parts_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_revisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      electoral_revisions: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          publication_date: string | null
+          qualifying_date: string | null
+          revision_year: number | null
+          roll_type: string | null
+          state_id: string
+          verification_status: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          publication_date?: string | null
+          qualifying_date?: string | null
+          revision_year?: number | null
+          roll_type?: string | null
+          state_id: string
+          verification_status?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          publication_date?: string | null
+          qualifying_date?: string | null
+          revision_year?: number | null
+          roll_type?: string | null
+          state_id?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "electoral_revisions_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       logical_voters: {
         Row: {
           canonical_source_record_id: string | null
           created_at: string
+          electoral_part_id: string | null
           expected_slot: boolean
           id: string
           lifecycle_status: string
           part_number: number
           quarantine_reason: string | null
+          revision_id: string | null
           serial_number: string | null
           updated_at: string
           verification_status: Database["public"]["Enums"]["verification_status"]
@@ -122,11 +318,13 @@ export type Database = {
         Insert: {
           canonical_source_record_id?: string | null
           created_at?: string
+          electoral_part_id?: string | null
           expected_slot?: boolean
           id?: string
           lifecycle_status?: string
           part_number: number
           quarantine_reason?: string | null
+          revision_id?: string | null
           serial_number?: string | null
           updated_at?: string
           verification_status?: Database["public"]["Enums"]["verification_status"]
@@ -136,11 +334,13 @@ export type Database = {
         Update: {
           canonical_source_record_id?: string | null
           created_at?: string
+          electoral_part_id?: string | null
           expected_slot?: boolean
           id?: string
           lifecycle_status?: string
           part_number?: number
           quarantine_reason?: string | null
+          revision_id?: string | null
           serial_number?: string | null
           updated_at?: string
           verification_status?: Database["public"]["Enums"]["verification_status"]
@@ -160,6 +360,20 @@ export type Database = {
             columns: ["canonical_source_record_id"]
             isOneToOne: false
             referencedRelation: "voter_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logical_voters_electoral_part_id_fkey"
+            columns: ["electoral_part_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logical_voters_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_revisions"
             referencedColumns: ["id"]
           },
         ]
@@ -327,32 +541,91 @@ export type Database = {
           },
         ]
       }
+      parliamentary_constituencies: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          name_source: string
+          pc_number: number
+          reserved_category: string
+          state_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          name_source: string
+          pc_number: number
+          reserved_category: string
+          state_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          name_source?: string
+          pc_number?: number
+          reserved_category?: string
+          state_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parliamentary_constituencies_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       part_expectations: {
         Row: {
+          electoral_part_id: string | null
           expected_serial_end: number
           expected_serial_start: number
           expected_voter_total: number
           part_number: number
+          revision_id: string | null
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          electoral_part_id?: string | null
           expected_serial_end: number
           expected_serial_start: number
           expected_voter_total: number
           part_number: number
+          revision_id?: string | null
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          electoral_part_id?: string | null
           expected_serial_end?: number
           expected_serial_start?: number
           expected_voter_total?: number
           part_number?: number
+          revision_id?: string | null
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "part_expectations_electoral_part_id_fkey"
+            columns: ["electoral_part_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "part_expectations_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_revisions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       processing_runs: {
         Row: {
@@ -565,24 +838,58 @@ export type Database = {
           },
         ]
       }
+      states: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          source_document: string | null
+          verification_status: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          source_document?: string | null
+          verification_status?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          source_document?: string | null
+          verification_status?: string
+        }
+        Relationships: []
+      }
       uploaded_pdfs: {
         Row: {
           active_version: boolean
+          assembly_constituency_id: string | null
           checksum: string
           completed_at: string | null
           detected_language: string | null
+          document_type: string | null
+          electoral_part_id: string | null
           expected_voter_total: number | null
           failed_pages: number
           filename: string
+          geography_verification_status: string
           id: string
           language_confidence: number | null
+          parliamentary_constituency_id: string | null
           part_number: number
           processed_pages: number
           processing_status: string
           records_count: number
           review_records: number
+          revision_id: string | null
           revision_identifier: string | null
           source_language: string
+          state_id: string | null
           storage_path: string
           supersedes_id: string | null
           total_pdf_pages: number
@@ -592,21 +899,28 @@ export type Database = {
         }
         Insert: {
           active_version?: boolean
+          assembly_constituency_id?: string | null
           checksum: string
           completed_at?: string | null
           detected_language?: string | null
+          document_type?: string | null
+          electoral_part_id?: string | null
           expected_voter_total?: number | null
           failed_pages?: number
           filename: string
+          geography_verification_status?: string
           id?: string
           language_confidence?: number | null
+          parliamentary_constituency_id?: string | null
           part_number: number
           processed_pages?: number
           processing_status: string
           records_count?: number
           review_records?: number
+          revision_id?: string | null
           revision_identifier?: string | null
           source_language?: string
+          state_id?: string | null
           storage_path: string
           supersedes_id?: string | null
           total_pdf_pages: number
@@ -616,21 +930,28 @@ export type Database = {
         }
         Update: {
           active_version?: boolean
+          assembly_constituency_id?: string | null
           checksum?: string
           completed_at?: string | null
           detected_language?: string | null
+          document_type?: string | null
+          electoral_part_id?: string | null
           expected_voter_total?: number | null
           failed_pages?: number
           filename?: string
+          geography_verification_status?: string
           id?: string
           language_confidence?: number | null
+          parliamentary_constituency_id?: string | null
           part_number?: number
           processed_pages?: number
           processing_status?: string
           records_count?: number
           review_records?: number
+          revision_id?: string | null
           revision_identifier?: string | null
           source_language?: string
+          state_id?: string | null
           storage_path?: string
           supersedes_id?: string | null
           total_pdf_pages?: number
@@ -639,6 +960,41 @@ export type Database = {
           uploaded_by?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "uploaded_pdfs_assembly_constituency_id_fkey"
+            columns: ["assembly_constituency_id"]
+            isOneToOne: false
+            referencedRelation: "assembly_constituencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uploaded_pdfs_electoral_part_id_fkey"
+            columns: ["electoral_part_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uploaded_pdfs_parliamentary_constituency_id_fkey"
+            columns: ["parliamentary_constituency_id"]
+            isOneToOne: false
+            referencedRelation: "parliamentary_constituencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uploaded_pdfs_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_revisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uploaded_pdfs_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "uploaded_pdfs_supersedes_id_fkey"
             columns: ["supersedes_id"]
@@ -689,6 +1045,7 @@ export type Database = {
           corrected_value: Json | null
           created_at: string
           duplicate_of: string | null
+          electoral_part_id: string | null
           epic_confidence: number | null
           epic_number: string | null
           extraction_method: string | null
@@ -715,6 +1072,7 @@ export type Database = {
           printed_page_number: number | null
           relation_confidence: number | null
           relation_type: string
+          revision_id: string | null
           serial_number: string | null
           source_card_index: number | null
           transliterated_name: string | null
@@ -734,6 +1092,7 @@ export type Database = {
           corrected_value?: Json | null
           created_at?: string
           duplicate_of?: string | null
+          electoral_part_id?: string | null
           epic_confidence?: number | null
           epic_number?: string | null
           extraction_method?: string | null
@@ -760,6 +1119,7 @@ export type Database = {
           printed_page_number?: number | null
           relation_confidence?: number | null
           relation_type: string
+          revision_id?: string | null
           serial_number?: string | null
           source_card_index?: number | null
           transliterated_name?: string | null
@@ -779,6 +1139,7 @@ export type Database = {
           corrected_value?: Json | null
           created_at?: string
           duplicate_of?: string | null
+          electoral_part_id?: string | null
           epic_confidence?: number | null
           epic_number?: string | null
           extraction_method?: string | null
@@ -805,6 +1166,7 @@ export type Database = {
           printed_page_number?: number | null
           relation_confidence?: number | null
           relation_type?: string
+          revision_id?: string | null
           serial_number?: string | null
           source_card_index?: number | null
           transliterated_name?: string | null
@@ -831,6 +1193,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "voter_records_electoral_part_id_fkey"
+            columns: ["electoral_part_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_parts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "voter_records_logical_voter_id_fkey"
             columns: ["logical_voter_id"]
             isOneToOne: false
@@ -849,6 +1218,13 @@ export type Database = {
             columns: ["pdf_id"]
             isOneToOne: false
             referencedRelation: "uploaded_pdfs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voter_records_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_revisions"
             referencedColumns: ["id"]
           },
         ]
@@ -1394,27 +1770,6 @@ export type Database = {
           total_count: number
         }[]
       }
-      get_revision_reconciliation_summary_v1: {
-        Args: { p_part?: number }
-        Returns: {
-          active_documents: number
-          duplicate_source_slots: number
-          english_linked_slots: number
-          epic_conflict_slots: number
-          expected_slots: number
-          missing_english_slots: number
-          missing_telugu_slots: number
-          needs_review_slots: number
-          paired_slots: number
-          part_number: number
-          reconciled_slots: number
-          revision_identifiers: string[]
-          source_records: number
-          telugu_linked_slots: number
-          unlinked_source_records: number
-          verified_slots: number
-        }[]
-      }
       get_review_issues_page: {
         Args: {
           p_category?: string
@@ -1507,6 +1862,27 @@ export type Database = {
           voter_printed_page_number: number
         }[]
       }
+      get_revision_reconciliation_summary_v1: {
+        Args: { p_part?: number }
+        Returns: {
+          active_documents: number
+          duplicate_source_slots: number
+          english_linked_slots: number
+          epic_conflict_slots: number
+          expected_slots: number
+          missing_english_slots: number
+          missing_telugu_slots: number
+          needs_review_slots: number
+          paired_slots: number
+          part_number: number
+          reconciled_slots: number
+          revision_identifiers: string[]
+          source_records: number
+          telugu_linked_slots: number
+          unlinked_source_records: number
+          verified_slots: number
+        }[]
+      }
       get_serial_completeness_page: {
         Args: {
           p_after_cursor?: string
@@ -1524,8 +1900,59 @@ export type Database = {
           total_count: number
         }[]
       }
+      get_voter_insights_v1: {
+        Args: { p_age_group?: string; p_gender?: string; p_part?: number }
+        Returns: {
+          age_groups: Json
+          available_total: number
+          average_age: number
+          average_voters_per_house: number
+          critical_issue_count: number
+          duplicate_epic_groups: number
+          duplicate_part_serial_groups: number
+          expected_total: number
+          female_total: number
+          five_six_house_groups: number
+          house_group_count: number
+          house_groups: Json
+          invalid_age_count: number
+          largest_house_group: number
+          male_total: number
+          median_age: number
+          missing_age_count: number
+          missing_epic_count: number
+          missing_gender_count: number
+          missing_house_count: number
+          missing_serial_count: number
+          needs_review_total: number
+          oldest_age: number
+          other_total: number
+          parts: Json
+          revision_count: number
+          seven_plus_house_groups: number
+          single_house_groups: number
+          three_four_house_groups: number
+          two_house_groups: number
+          unexpected_serial_count: number
+          unknown_gender_total: number
+          unverified_total: number
+          valid_age_count: number
+          verified_total: number
+          youngest_age: number
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       is_authorized_user: { Args: never; Returns: boolean }
+      persist_extracted_page_v1: {
+        Args: {
+          p_document_id: string
+          p_page: Json
+          p_processing_run_id: string
+          p_records: Json
+          p_review_issues?: Json
+        }
+        Returns: Json
+      }
       reconcile_logical_voters_for_part: {
         Args: { p_part: number }
         Returns: undefined
@@ -1591,6 +2018,16 @@ export type Database = {
           total_count: number
           verification_status: Database["public"]["Enums"]["verification_status"]
           voter_name: string
+        }[]
+      }
+      verify_review_issue_v1: {
+        Args: { p_issue_id: number }
+        Returns: {
+          issue_id: number
+          issue_status: string
+          verification_status: Database["public"]["Enums"]["verification_status"]
+          verified_at: string
+          voter_id: string
         }[]
       }
       voter_language_coverage: {

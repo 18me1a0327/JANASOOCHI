@@ -11,8 +11,8 @@ export default function SearchPage() {
     <>
       <PageHeader eyebrow={t("partsScope")} title={t("pageSearchTitle")} description={t("pageSearchLead")} />
       <div className="metric-grid metric-grid-compact">
-        <MetricCard label={t("logicalVoters")} value="3,454" note={t("expectedRegister")} tone="positive" />
-        <MetricCard label={t("supportedParts")} value="227–230" note="4 Parts" />
+        <MetricCard label="Pilot logical slots" value="3,454" note="Parts 227-230 reference scope" tone="positive" />
+        <MetricCard label="Statewide geography" value="25 PCs · 175 ACs" note="Select a verified Part to query records" />
         <MetricCard label={t("sourceLanguage")} value="EN · TE · UR" note={t("resultLanguageRule")} />
       </div>
       <VoterSearch />

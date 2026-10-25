@@ -10,13 +10,14 @@ import { detectLanguage, UNSUPPORTED, URDU_BLOCKED } from '../src/core'
 import { inspectPdf, processPdf, sha256, type ProcessedPage } from '../src/lib'
 import type { DocumentRow } from '../src/types'
 import { useLanguage } from './language-provider'
+import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, type GeographyScope } from './geography-scope'
 
 const PAGE_SIZE = 25
 
 type Progress = { page: number; total: number; records: number; reviews: number }
 
 const COPY = {
-  en: { choose: 'Select or drop an authorized PDF', validate: 'Validate and process', processing: 'Processing page', duplicate: 'This PDF has already been processed.', unsupported: 'Unsupported electoral roll. This application supports only Pallerlamudi Parts 227, 228, 229 and 230.', invalid: 'Unable to open PDF', database: 'Database temporarily unavailable', uploaded: 'PDF processed and saved.', stored: 'PDF safely stored. Page processing is continuing.', warning: 'PDF completed with review warnings.', refresh: 'Refresh documents', source: 'Open source', archive: 'Archive', activate: 'Make active', confirmArchive: 'Archive this source version? Its source records and audit history will be retained.', adminOnly: 'Only an administrator can upload or change source documents.', noDocs: 'No uploaded source documents were found.', failed: 'Unable to process this document. The PDF remains safely stored and saved page progress can be resumed.', retry: 'Retry / resume with selected PDF' },
+  en: { choose: 'Select or drop an authorized PDF', validate: 'Validate and process', processing: 'Processing page', duplicate: 'This PDF has already been processed.', unsupported: 'Unsupported electoral roll. Select a verified Andhra Pradesh Part and source PDF.', invalid: 'Unable to open PDF', database: 'Database temporarily unavailable', uploaded: 'PDF processed and saved.', stored: 'PDF safely stored. Page processing is continuing.', warning: 'PDF completed with review warnings.', refresh: 'Refresh documents', source: 'Open source', archive: 'Archive', activate: 'Make active', confirmArchive: 'Archive this source version? Its source records and audit history will be retained.', adminOnly: 'Only an administrator can upload or change source documents.', noDocs: 'No uploaded source documents were found.', failed: 'Unable to process this document. The PDF remains safely stored and saved page progress can be resumed.', retry: 'Retry / resume with selected PDF' },
   te: { choose: 'అధీకృత PDFను ఎంచుకోండి లేదా వదలండి', validate: 'ధృవీకరించి ప్రాసెస్ చేయండి', processing: 'ప్రాసెస్ అవుతున్న పేజీ', duplicate: 'ఈ PDF ఇప్పటికే ప్రాసెస్ చేయబడింది.', unsupported: 'మద్దతు లేని ఓటరు జాబితా. ఈ అప్లికేషన్ పల్లెర్లమూడి భాగాలు 227, 228, 229 మరియు 230కి మాత్రమే మద్దతు ఇస్తుంది.', invalid: 'PDF తెరవలేకపోయాం', database: 'డేటాబేస్ తాత్కాలికంగా అందుబాటులో లేదు', uploaded: 'PDF ప్రాసెస్ చేసి సేవ్ చేయబడింది.', stored: 'PDF సురక్షితంగా నిల్వైంది. పేజీ ప్రాసెసింగ్ కొనసాగుతోంది.', warning: 'PDF సమీక్ష హెచ్చరికలతో పూర్తయింది.', refresh: 'పత్రాలను రిఫ్రెష్ చేయండి', source: 'మూలం తెరవండి', archive: 'ఆర్కైవ్', activate: 'సక్రియం చేయండి', confirmArchive: 'ఈ మూల సంచికను ఆర్కైవ్ చేయాలా? మూల రికార్డులు, ఆడిట్ చరిత్ర నిల్వ ఉంటాయి.', adminOnly: 'అడ్మిన్ మాత్రమే మూల పత్రాలను అప్‌లోడ్ చేయగలరు లేదా మార్చగలరు.', noDocs: 'అప్‌లోడ్ చేసిన మూల పత్రాలు లేవు.', failed: 'ఈ పత్రాన్ని ప్రాసెస్ చేయలేకపోయాం. PDF సురక్షితంగా నిల్వ ఉంటుంది; సేవ్ చేసిన పేజీ పురోగతిని కొనసాగించవచ్చు.', retry: 'ఎంచుకున్న PDFతో మళ్లీ ప్రయత్నించండి / కొనసాగించండి' },
   ur: { choose: 'مجاز PDF منتخب کریں یا یہاں چھوڑیں', validate: 'توثیق اور پراسیس کریں', processing: 'صفحہ پراسیس ہو رہا ہے', duplicate: 'یہ PDF پہلے ہی پراسیس ہو چکی ہے۔', unsupported: 'غیر معاون انتخابی فہرست۔ یہ ایپ صرف پالرلامودی حصوں 227، 228، 229 اور 230 کی معاونت کرتی ہے۔', invalid: 'PDF نہیں کھولی جا سکی', database: 'ڈیٹابیس عارضی طور پر دستیاب نہیں', uploaded: 'PDF پراسیس اور محفوظ ہو گئی۔', stored: 'PDF محفوظ اسٹوریج میں ہے۔ صفحہ پراسیسنگ جاری ہے۔', warning: 'PDF جائزہ انتباہات کے ساتھ مکمل ہوئی۔', refresh: 'دستاویزات تازہ کریں', source: 'ماخذ کھولیں', archive: 'آرکائیو', activate: 'فعال کریں', confirmArchive: 'اس ماخذ ورژن کو آرکائیو کریں؟ ماخذ ریکارڈ اور آڈٹ تاریخ برقرار رہے گی۔', adminOnly: 'صرف ایڈمن ماخذ دستاویزات اپ لوڈ یا تبدیل کر سکتا ہے۔', noDocs: 'کوئی اپ لوڈ شدہ ماخذ دستاویز نہیں ملی۔', failed: 'دستاویز پراسیس نہیں ہو سکی۔ PDF محفوظ ہے اور محفوظ شدہ پیش رفت دوبارہ شروع کی جا سکتی ہے۔', retry: 'منتخب PDF سے دوبارہ کوشش / بحال کریں' },
 } as const
@@ -35,6 +36,7 @@ export function DocumentsManager() {
   const [progress, setProgress] = useState<Progress | null>(null)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
+  const [scope, setScope] = useState<GeographyScope>(EMPTY_GEOGRAPHY_SCOPE)
   const isAdmin = role === 'admin'
 
   const load = useCallback(async (nextPage: number) => {
@@ -42,12 +44,16 @@ export function DocumentsManager() {
     setError('')
     try {
       const from = (nextPage - 1) * PAGE_SIZE
-      const { data, error: queryError } = await createClient()
+      let query = createClient()
         .from('uploaded_pdfs')
         .select('*')
-        .in('part_number', [227, 228, 229, 230])
         .order('uploaded_at', { ascending: false })
         .range(from, from + PAGE_SIZE)
+      if (scope.partId) query = query.eq('electoral_part_id', scope.partId)
+      else if (scope.acId) query = query.eq('assembly_constituency_id', scope.acId)
+      else if (scope.pcId) query = query.eq('parliamentary_constituency_id', scope.pcId)
+      else if (scope.revisionId) query = query.eq('revision_id', scope.revisionId)
+      const { data, error: queryError } = await query
       if (queryError) throw queryError
       const rows = (data ?? []) as DocumentRow[]
       setDocuments(rows.slice(0, PAGE_SIZE))
@@ -59,7 +65,7 @@ export function DocumentsManager() {
     } finally {
       setLoading(false)
     }
-  }, [copy.database])
+  }, [copy.database, scope.acId, scope.pcId, scope.partId, scope.revisionId])
 
   useEffect(() => { void load(1) }, [load])
 
@@ -190,6 +196,8 @@ export function DocumentsManager() {
     let documentId = ''
     try {
       const info = await inspectPdf(file)
+      if (!scope.partId || !scope.partNumber) throw new Error('Select a verified Part before uploading a source PDF.')
+      if (info.part !== scope.partNumber) throw new Error(`The PDF header identifies Part ${info.part}; select that Part before uploading.`)
       const checksum = await sha256(file)
       const supabase = createClient()
       const duplicate = await supabase.from('uploaded_pdfs').select('*').eq('checksum', checksum).maybeSingle()
@@ -200,14 +208,7 @@ export function DocumentsManager() {
         if (saved.error) throw saved.error
         const retryableErrors = new Set(['page_processing_failed', 'page_persistence_failed'])
         const retryable = (saved.data ?? []).filter((savedPage) => savedPage.status === 'requires_review' && retryableErrors.has(savedPage.error_type ?? ''))
-        // A document row is created before page extraction starts. If the browser
-        // is closed, a page request fails, or finalization is interrupted, the
-        // private PDF and its metadata are still durable. Allow that same file to
-        // resume from its saved page state; only completed documents remain
-        // duplicate-protected.
-        const resumableStatuses = new Set(['failed', 'interrupted', 'processing'])
-        const canResume = retryable.length > 0 || resumableStatuses.has(existing.processing_status)
-        if (!canResume) {
+        if (!retryable.length) {
           setError(copy.duplicate)
           return
         }
@@ -232,7 +233,7 @@ export function DocumentsManager() {
       }
       const detected = detectLanguage(info.sample, info.language)
       const sourceLanguage = detected.confidence >= 60 ? detected.language : info.language
-      const previous = await supabase.from('uploaded_pdfs').select('id').eq('part_number', info.part).eq('source_language', sourceLanguage).eq('active_version', true).order('uploaded_at', { ascending: false }).limit(1).maybeSingle()
+      const previous = await supabase.from('uploaded_pdfs').select('id').eq('electoral_part_id', scope.partId).eq('source_language', sourceLanguage).eq('active_version', true).order('uploaded_at', { ascending: false }).limit(1).maybeSingle()
       if (previous.error) throw previous.error
       storagePath = `${info.part}/${sourceLanguage}/${crypto.randomUUID()}-${file.name.replace(/[^A-Za-z0-9._-]/g, '_')}`
       const upload = await supabase.storage.from('voter-pdfs').upload(storagePath, file, { contentType: 'application/pdf', upsert: false })
@@ -248,6 +249,12 @@ export function DocumentsManager() {
         detected_language: detected.language,
         language_confidence: detected.confidence,
         expected_voter_total: info.expectedVoterTotal,
+        state_id: scope.stateId || null,
+        parliamentary_constituency_id: scope.pcId || null,
+        assembly_constituency_id: scope.acId || null,
+        electoral_part_id: scope.partId,
+        revision_id: scope.revisionId || null,
+        geography_verification_status: 'verified_from_source_header',
         active_version: !previous.data,
         supersedes_id: previous.data?.id ?? null,
       }).select('id').single()
@@ -263,11 +270,10 @@ export function DocumentsManager() {
         expectedVoterTotal: info.expectedVoterTotal,
         onPage: async (processed) => {
           await savePage(documentId, info.part, processed)
-          const progressUpdate = await supabase.from('uploaded_pdfs').update({
+          await supabase.from('uploaded_pdfs').update({
             processed_pages: processed.state.page,
             updated_at: new Date().toISOString(),
           }).eq('id', documentId)
-          if (progressUpdate.error) throw progressUpdate.error
         },
       })
 
@@ -278,15 +284,8 @@ export function DocumentsManager() {
       await load(1)
     } catch (processError) {
       console.error('Document processing failed', processError)
-      if (documentId) {
-        // Keep the durable Storage object and metadata visible for a safe
-        // retry. A processing exception must not turn a persisted source PDF
-        // into an unresumable duplicate or imply that the source was lost.
-        const persisted = await createClient().from('uploaded_pdfs').update({ processing_status: 'interrupted', updated_at: new Date().toISOString() }).eq('id', documentId)
-        if (persisted.error) console.error('Unable to mark stored document interrupted', persisted.error)
-      } else if (storagePath) {
-        await createClient().storage.from('voter-pdfs').remove([storagePath])
-      }
+      if (documentId) await createClient().from('uploaded_pdfs').update({ processing_status: 'failed', updated_at: new Date().toISOString() }).eq('id', documentId)
+      else if (storagePath) await createClient().storage.from('voter-pdfs').remove([storagePath])
       const message = processError instanceof Error ? processError.message : ''
       setError(message === UNSUPPORTED ? copy.unsupported : message === URDU_BLOCKED ? t('urduBlockedMessage') : message.includes('PDF') ? copy.invalid : copy.failed)
       await load(1)
@@ -321,6 +320,7 @@ export function DocumentsManager() {
       {isAdmin ? <section className="surface-panel upload-panel">
         <div className="panel-header"><div><h2>{t('uploadPdf')}</h2><p>{t('pdfOnly')}</p></div></div>
         <div className="document-upload">
+          <GeographyScopeSelector value={scope} onChange={(next) => { setScope(next); setError('') }} requiredPart />
           <button className="drop-zone" type="button" disabled={busy} onClick={() => inputRef.current?.click()}><UploadCloud aria-hidden="true" /><strong>{copy.choose}</strong><span>{t('pdfOnly')}</span></button>
           <input ref={inputRef} className="visually-hidden" type="file" accept="application/pdf,.pdf" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setError(''); setNotice('') }} />
           <div className="selected-document"><FileCheck2 aria-hidden="true" /><span><small>{t('selectedFile')}</small><strong>{file?.name ?? t('noFileSelected')}</strong></span>{file && !busy && <button type="button" onClick={() => setFile(null)}><X aria-hidden="true" /></button>}</div>

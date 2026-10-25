@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, ExternalLink, LoaderCircle, RotateCcw, Searc
 
 import { createClient } from '../lib/supabase/client'
 import { useLanguage } from './language-provider'
+import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, type GeographyScope } from './geography-scope'
 
 const PAGE_SIZE = 25
 
@@ -60,6 +61,7 @@ export function VoterSearch() {
   const [total, setTotal] = useState(0)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [scope, setScope] = useState<GeographyScope>(EMPTY_GEOGRAPHY_SCOPE)
 
   const activeCount = useMemo(
     () => Object.entries(filters).filter(([key, value]) => key !== 'fuzzy' && Boolean(value)).length,
@@ -72,6 +74,13 @@ export function VoterSearch() {
   }
 
   async function runSearch(nextFilters: Filters, nextPage = 1) {
+    if (!scope.partId) {
+      setRows([])
+      setTotal(0)
+      setApplied(null)
+      setError('Choose a verified Part before searching. Statewide search requires an explicit Part scope.')
+      return
+    }
     setBusy(true)
     setError('')
     try {
@@ -130,6 +139,7 @@ export function VoterSearch() {
   return (
     <>
       <section className="surface-panel">
+        <GeographyScopeSelector value={scope} onChange={(next) => { setScope(next); update('part', next.partNumber ? String(next.partNumber) : '') }} />
         <form className="search-form" onSubmit={submit}>
           <div className="filter-heading">
             <span><SlidersHorizontal aria-hidden="true" />{activeCount} active</span>
@@ -137,7 +147,7 @@ export function VoterSearch() {
           </div>
           <div className="filter-grid">
             <label><span>{t('sourceLanguage')}</span><select value={language} disabled><option value={language}>{language === 'en' ? t('englishSource') : language === 'te' ? t('teluguSource') : t('urduSource')}</option></select></label>
-            <label><span>{t('part')}</span><select value={filters.part} onChange={(event) => update('part', event.target.value)}><option value="">{t('allSupportedParts')}</option><option>227</option><option>228</option><option>229</option><option>230</option></select></label>
+            <label><span>{t('part')}</span><select value={filters.part} onChange={(event) => update('part', event.target.value)}><option value="">{t('allSupportedParts')}</option>{scope.partId && scope.partNumber ? <option>{scope.partNumber}</option> : null}</select></label>
             <label className="span-two"><span>{t('name')}</span><input value={filters.name} onChange={(event) => update('name', event.target.value)} autoComplete="off" /></label>
             <label className="span-two"><span>{t('relationName')}</span><input value={filters.relationName} onChange={(event) => update('relationName', event.target.value)} autoComplete="off" /></label>
             <label><span>{t('relationType')}</span><select value={filters.relationType} onChange={(event) => update('relationType', event.target.value)}><option value="">{t('allRelationTypes')}</option><option value="Father">{t('father')}</option><option value="Mother">{t('mother')}</option><option value="Husband">{t('husband')}</option><option value="Guardian">{t('guardian')}</option><option value="Other">{t('other')}</option><option value="Unknown">{t('unknown')}</option></select></label>
