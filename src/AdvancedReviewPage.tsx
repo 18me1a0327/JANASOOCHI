@@ -8,7 +8,7 @@ import { invalidateDataCache } from './data'
 import { supabase } from './lib'
 import { classifyReviewError, normalizeReviewSearch, reviewCursorFromRows, reviewErrorContext, reviewFieldsChanged, reviewInitialFields, reviewMutationErrorMessage } from './review'
 import type { ReviewCategory, ReviewCursor, ReviewPageRow } from './review'
-import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, scopeHasNarrowing, type GeographyScope } from '../components/geography-scope'
+import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, scopeHasNarrowing, scopeRpcParams, type GeographyScope } from '../components/geography-scope'
 
 type Lang = 'en' | 'te' | 'ur'
 type ReviewStatus = 'all' | 'open' | 'resolved' | 'dismissed'
@@ -86,7 +86,7 @@ export default function AdvancedReviewPage({ lang }: { lang: Lang }) {
         p_severity: severity,
         p_category: category,
         p_language: sourceLanguage === 'all' ? null : sourceLanguage,
-        p_part: scope.partNumber ?? (part === 'all' ? null : Number(part)),
+        p_part: scope.partNumber ?? (part === 'all' ? null : Number(part)), ...scopeRpcParams(scope),
         p_search: searchTerm || null,
         p_limit: pageSize,
         p_after_created_at: cursor?.createdAt ?? null,

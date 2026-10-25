@@ -6,7 +6,7 @@ import { AlertOctagon, BarChart3, CheckCircle2, CircleDashed, Filter, LoaderCirc
 import { buildQualityAnalytics, count, percent, type CountValue, type PartLanguageQualityInput, type QualitySummaryInput } from '../lib/data-quality/metrics'
 import { createClient } from '../lib/supabase/client'
 import { useLanguage } from './language-provider'
-import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, scopeHasNarrowing, type GeographyScope } from './geography-scope'
+import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, scopeHasNarrowing, scopeRpcParams, type GeographyScope } from './geography-scope'
 import { ReconciliationDrilldown } from './reconciliation-drilldown'
 import { MetricCard, Panel } from './ui-shell'
 
@@ -59,11 +59,11 @@ export function DataQualityDashboard() {
       const supabase = createClient()
       const [summaryResult, overallResult, partsResult] = await Promise.all([
         supabase.rpc('get_data_quality_summary' as never, {
-          p_part: scope.partNumber ?? (part ? Number(part) : null),
+          p_part: scope.partNumber ?? (part ? Number(part) : null), ...scopeRpcParams(scope),
           p_language: sourceLanguage === 'all' ? null : sourceLanguage,
         } as never),
         supabase.rpc('get_data_quality_summary' as never, {
-          p_part: scope.partNumber ?? (part ? Number(part) : null),
+          p_part: scope.partNumber ?? (part ? Number(part) : null), ...scopeRpcParams(scope),
           p_language: null,
         } as never),
         supabase.rpc('get_part_language_quality' as never, {} as never),
@@ -183,7 +183,7 @@ export function DataQualityDashboard() {
         <Panel title={copy.ocrTitle}><div className="quality-evidence-note"><BarChart3 aria-hidden="true" /><p>{copy.ocrUnavailable}</p></div></Panel>
       </div>}
       {qualityView === 'extraction' && <Panel title="Extraction pipeline" description="Live database counts; no OCR accuracy is inferred."><div className="quality-bars"><QualityBarRow label="Source records extracted" value={number(extracted)} percent={100} /><QualityBarRow label="Cards extracted / detected" value={`${number(summary?.extracted_voter_cards)} / ${number(summary?.expected_voter_cards)}`} percent={Number(summary?.expected_voter_cards) ? Math.round(Number(summary?.extracted_voter_cards) / Number(summary?.expected_voter_cards) * 1000) / 10 : 0} /><QualityBarRow label="Source records reconciled" value={number(summary?.linked_source_records)} percent={Number(extracted) ? Math.round(Number(summary?.linked_source_records) / Number(extracted) * 1000) / 10 : 0} /><QualityBarRow label="Verified logical voters" value={number(verified)} percent={expected ? Math.round(verified / expected * 1000) / 10 : 0} /></div></Panel>}
-      {(qualityView === 'overview' || qualityView === 'reconciliation') && <ReconciliationDrilldown part={scope.partNumber ? String(scope.partNumber) : part} />}
+      {(qualityView === 'overview' || qualityView === 'reconciliation') && <ReconciliationDrilldown part={scope.partNumber ? String(scope.partNumber) : part} scope={scope} />}
       {qualityView === 'revisions' && <Panel title={revisionViewLabel} description="Added, removed, changed and unchanged counts require two valid revisions."><div className="quality-evidence-note"><CircleDashed aria-hidden="true" /><p>Revision comparison will be available when another electoral roll revision is imported.</p></div></Panel>}
     </>
   )

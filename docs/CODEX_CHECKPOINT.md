@@ -1027,3 +1027,17 @@ from verified official roll headers (no CAPTCHA/API bypass).
 ### Next exact task
 
 Add versioned, server-side PC/AC/revision-scoped RPCs (or equivalent joins) and an Admin-only verified Part metadata import workflow, then deploy and run focused production QA.
+
+## Statewide Part scope on the server — 2026-10-25
+
+- STATUS: IMPLEMENTED LOCALLY — migration `20261025100000_statewide_part_scope.sql` validated on a fresh local Supabase replay; not applied to production.
+- BUG FIXED: since migration 017 replaced the logical-voter unique key with `(revision_id, electoral_part_id, serial_number)`, `reconcile_logical_voters_for_part` failed with "no unique or exclusion constraint matching the ON CONFLICT specification", so the post-upload reconciliation step could not complete.
+- RECONCILIATION: new `reconcile_logical_voters_for_electoral_part(uuid)` keys every join/insert on `electoral_part_id`. The legacy `reconcile_logical_voters_for_part(integer)` delegates when the Part number is unique and refuses when it is ambiguous across ACs/revisions.
+- READ RPCS: Search, Review, Data Quality, Serial completeness, Data Insights, language coverage and reconciliation summary/evidence accept `p_electoral_part_id`, `p_assembly_constituency_id`, `p_parliamentary_constituency_id`, `p_revision_id` (via `electoral_part_in_scope`). The 227–230 allowlists are replaced by "Part exists in `electoral_parts`".
+- INGESTION: `voter_records` inherits `electoral_part_id`/`revision_id` from its document (trigger rejects mismatches); `persist_extracted_page_v1` validates serials against the document's own Part expectations.
+- PART IMPORT: Admin → "Import verified Parts" calls `import_verified_electoral_parts_v1` (admin-only, source reference required, serial range must equal voter total, max 500 rows, audited).
+- TESTS: `supabase/tests/statewide_part_scope.sql` (6 PASS assertions) and `lib/admin/part-import.test.ts`; `.github/workflows/web.yml` runs web checks and the migration replay + SQL regression.
+
+### Next exact task
+
+Apply the migration to production, import the next AC's verified Part headers, then move OCR from the browser to the extraction-api job worker.

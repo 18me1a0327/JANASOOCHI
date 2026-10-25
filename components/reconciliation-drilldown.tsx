@@ -15,6 +15,7 @@ import {
   type RevisionReconciliationSummary,
 } from '../lib/data-quality/reconciliation'
 import { createClient } from '../lib/supabase/client'
+import { EMPTY_GEOGRAPHY_SCOPE, scopeRpcParams, type GeographyScope } from './geography-scope'
 import { useLanguage } from './language-provider'
 import { MetricCard, Panel } from './ui-shell'
 
@@ -49,7 +50,7 @@ const STATUS_OPTIONS: Exclude<ReconciliationStatus, 'all'>[] = [
   'duplicate_source', 'epic_conflict', 'unlinked_source',
 ]
 
-export function ReconciliationDrilldown({ part }: Readonly<{ part: string }>) {
+export function ReconciliationDrilldown({ part, scope = EMPTY_GEOGRAPHY_SCOPE }: Readonly<{ part: string; scope?: GeographyScope }>) {
   const router = useRouter()
   const { language } = useLanguage()
   const copy = COPY[language]
@@ -75,7 +76,7 @@ export function ReconciliationDrilldown({ part }: Readonly<{ part: string }>) {
   const loadSummary = useCallback(async () => {
     try {
       const result = await createClient().rpc('get_revision_reconciliation_summary_v1' as never, {
-        p_part: part ? Number(part) : null,
+        p_part: part ? Number(part) : null, ...scopeRpcParams(scope),
       } as never) as unknown as RpcResult
       if (result.error) throw result.error
       setSummary((result.data ?? []) as RevisionReconciliationSummary[])
@@ -84,14 +85,14 @@ export function ReconciliationDrilldown({ part }: Readonly<{ part: string }>) {
       setSummary([])
       setError(copy.unavailable)
     }
-  }, [copy.unavailable, part])
+  }, [copy.unavailable, part, scope])
 
   const loadRows = useCallback(async () => {
     setBusy(true)
     setError('')
     try {
       const result = await createClient().rpc('get_reconciliation_evidence_page_v1' as never, {
-        p_part: part ? Number(part) : null,
+        p_part: part ? Number(part) : null, ...scopeRpcParams(scope),
         p_status: status,
         p_search: search || null,
         p_limit: pageSize,
@@ -110,11 +111,11 @@ export function ReconciliationDrilldown({ part }: Readonly<{ part: string }>) {
     } finally {
       setBusy(false)
     }
-  }, [copy.unavailable, cursor?.part, cursor?.rowKey, cursor?.serial, page, pageSize, part, search, status])
+  }, [copy.unavailable, cursor?.part, cursor?.rowKey, cursor?.serial, page, pageSize, part, scope, search, status])
 
   useEffect(() => { void loadSummary() }, [loadSummary])
   useEffect(() => { void loadRows() }, [loadRows])
-  useEffect(() => { resetPage() }, [part, resetPage])
+  useEffect(() => { resetPage() }, [part, resetPage, scope])
 
   const totals = useMemo(() => summarizeRevisionRows(summary), [summary])
 

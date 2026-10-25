@@ -1666,8 +1666,25 @@ export type Database = {
       }
     }
     Functions: {
+      electoral_part_in_scope: {
+        Args: {
+          p_assembly_constituency_id: string
+          p_parliamentary_constituency_id: string
+          p_part_id: string
+          p_revision_id: string
+          p_row_part_id: string
+        }
+        Returns: boolean
+      }
       get_data_quality_summary: {
-        Args: { p_language?: string; p_part?: number }
+        Args: {
+          p_assembly_constituency_id?: string
+          p_electoral_part_id?: string
+          p_language?: string
+          p_parliamentary_constituency_id?: string
+          p_part?: number
+          p_revision_id?: string
+        }
         Returns: {
           active_logical_voters: number
           critical_issues: number
@@ -1723,8 +1740,12 @@ export type Database = {
           p_after_part?: number
           p_after_row_key?: string
           p_after_serial?: number
+          p_assembly_constituency_id?: string
+          p_electoral_part_id?: string
           p_limit?: number
+          p_parliamentary_constituency_id?: string
           p_part?: number
+          p_revision_id?: string
           p_search?: string
           p_status?: string
         }
@@ -1818,10 +1839,14 @@ export type Database = {
         Args: {
           p_after_created_at?: string
           p_after_id?: number
+          p_assembly_constituency_id?: string
           p_category?: string
+          p_electoral_part_id?: string
           p_language?: string
           p_limit?: number
+          p_parliamentary_constituency_id?: string
           p_part?: number
+          p_revision_id?: string
           p_search?: string
           p_severity?: string
           p_status?: string
@@ -1863,7 +1888,13 @@ export type Database = {
         }[]
       }
       get_revision_reconciliation_summary_v1: {
-        Args: { p_part?: number }
+        Args: {
+          p_assembly_constituency_id?: string
+          p_electoral_part_id?: string
+          p_parliamentary_constituency_id?: string
+          p_part?: number
+          p_revision_id?: string
+        }
         Returns: {
           active_documents: number
           duplicate_source_slots: number
@@ -1886,9 +1917,13 @@ export type Database = {
       get_serial_completeness_page: {
         Args: {
           p_after_cursor?: string
+          p_assembly_constituency_id?: string
+          p_electoral_part_id?: string
           p_language?: string
           p_limit?: number
+          p_parliamentary_constituency_id?: string
           p_part: number
+          p_revision_id?: string
           p_status?: string
         }
         Returns: {
@@ -1901,7 +1936,15 @@ export type Database = {
         }[]
       }
       get_voter_insights_v1: {
-        Args: { p_age_group?: string; p_gender?: string; p_part?: number }
+        Args: {
+          p_age_group?: string
+          p_assembly_constituency_id?: string
+          p_electoral_part_id?: string
+          p_gender?: string
+          p_parliamentary_constituency_id?: string
+          p_part?: number
+          p_revision_id?: string
+        }
         Returns: {
           age_groups: Json
           available_total: number
@@ -1941,6 +1984,19 @@ export type Database = {
           youngest_age: number
         }[]
       }
+      import_verified_electoral_parts_v1: {
+        Args: {
+          p_assembly_constituency_id: string
+          p_parts: Json
+          p_revision_id: string
+          p_source_reference: string
+        }
+        Returns: {
+          import_action: string
+          imported_part_id: string
+          imported_part_number: number
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       is_authorized_user: { Args: never; Returns: boolean }
       persist_extracted_page_v1: {
@@ -1952,6 +2008,10 @@ export type Database = {
           p_review_issues?: Json
         }
         Returns: Json
+      }
+      reconcile_logical_voters_for_electoral_part: {
+        Args: { p_electoral_part_id: string }
+        Returns: undefined
       }
       reconcile_logical_voters_for_part: {
         Args: { p_part: number }
@@ -1984,6 +2044,8 @@ export type Database = {
       search_source_records_page: {
         Args: {
           p_age?: number
+          p_assembly_constituency_id?: string
+          p_electoral_part_id?: string
           p_epic?: string
           p_fuzzy?: boolean
           p_gender?: string
@@ -1992,9 +2054,11 @@ export type Database = {
           p_limit?: number
           p_name?: string
           p_offset?: number
+          p_parliamentary_constituency_id?: string
           p_part?: number
           p_relation_name?: string
           p_relation_type?: string
+          p_revision_id?: string
           p_serial?: string
         }
         Returns: {
@@ -2031,7 +2095,13 @@ export type Database = {
         }[]
       }
       voter_language_coverage: {
-        Args: { p_part?: number }
+        Args: {
+          p_assembly_constituency_id?: string
+          p_electoral_part_id?: string
+          p_parliamentary_constituency_id?: string
+          p_part?: number
+          p_revision_id?: string
+        }
         Returns: {
           linked_records: number
           logical_total: number
