@@ -25,6 +25,15 @@ export function scopeHasNarrowing(scope: GeographyScope) {
   return Boolean(scope.pcId || scope.acId || scope.revisionId || scope.partId)
 }
 
+export function scopeRpcParams(scope: GeographyScope) {
+  return {
+    p_electoral_part_id: scope.partId || null,
+    p_assembly_constituency_id: scope.acId || null,
+    p_parliamentary_constituency_id: scope.pcId || null,
+    p_revision_id: scope.revisionId || null,
+  }
+}
+
 export function GeographyScopeSelector({ value = EMPTY, onChange, requiredPart = false }: { value?: GeographyScope; onChange: (scope: GeographyScope) => void; requiredPart?: boolean }) {
   const [states, setStates] = useState<StateRow[]>([])
   const [pcs, setPcs] = useState<PcRow[]>([])

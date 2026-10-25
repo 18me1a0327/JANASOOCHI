@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, ExternalLink, LoaderCircle, RotateCcw, Searc
 
 import { createClient } from '../lib/supabase/client'
 import { useLanguage } from './language-provider'
-import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, type GeographyScope } from './geography-scope'
+import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, scopeRpcParams, type GeographyScope } from './geography-scope'
 
 const PAGE_SIZE = 25
 
@@ -88,7 +88,7 @@ export function VoterSearch() {
       const response = await supabase.rpc(
         'search_source_records_page' as never,
         {
-          p_part: nextFilters.part ? Number(nextFilters.part) : null,
+          p_part: nextFilters.part ? Number(nextFilters.part) : null, ...scopeRpcParams(scope),
           p_language: language,
           p_name: nextFilters.name.trim() || null,
           p_relation_name: nextFilters.relationName.trim() || null,

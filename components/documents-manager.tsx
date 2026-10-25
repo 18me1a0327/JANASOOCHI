@@ -168,11 +168,14 @@ export function DocumentsManager() {
     if (final.error) throw final.error
 
     if (!interrupted) {
-      const deactivate = await supabase.from('uploaded_pdfs').update({ active_version: false, updated_at: now }).eq('part_number', document.part_number).eq('source_language', document.source_language).neq('id', document.id)
+      const deactivateQuery = supabase.from('uploaded_pdfs').update({ active_version: false, updated_at: now }).eq('source_language', document.source_language).neq('id', document.id)
+      const deactivate = await (document.electoral_part_id ? deactivateQuery.eq('electoral_part_id', document.electoral_part_id) : deactivateQuery.eq('part_number', document.part_number))
       if (deactivate.error) throw deactivate.error
       const activate = await supabase.from('uploaded_pdfs').update({ active_version: true, updated_at: now }).eq('id', document.id)
       if (activate.error) throw activate.error
-      const reconciliation = await supabase.rpc('reconcile_logical_voters_for_part', { p_part: document.part_number })
+      const reconciliation = document.electoral_part_id
+        ? await supabase.rpc('reconcile_logical_voters_for_electoral_part', { p_electoral_part_id: document.electoral_part_id })
+        : await supabase.rpc('reconcile_logical_voters_for_part', { p_part: document.part_number })
       if (reconciliation.error) throw reconciliation.error
     }
 

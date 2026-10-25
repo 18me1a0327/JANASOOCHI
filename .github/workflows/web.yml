@@ -1,0 +1,53 @@
+name: Web app
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm exec vitest run --pool=threads --no-file-parallelism
+      - name: Production build
+        run: pnpm build:cloudflare
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.116.0
+      - name: Replay migrations on a disposable local Supabase
+        run: |
+          mkdir -p "$RUNNER_TEMP/sb" && cd "$RUNNER_TEMP/sb"
+          supabase init --force
+          rm -rf supabase/migrations
+          cp -r "$GITHUB_WORKSPACE/supabase/migrations" supabase/migrations
+          supabase start -x studio,imgproxy,logflare,vector,edge-runtime,supavisor,realtime,inbucket,storage-api,postgres-meta
+      - name: Statewide Part scope regression
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 \
+            -f supabase/tests/statewide_part_scope.sql | tee /tmp/scope.log
+          test "$(grep -c PASS /tmp/scope.log)" -eq 6

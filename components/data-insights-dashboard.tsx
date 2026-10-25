@@ -6,7 +6,7 @@ import { BarChart3, CircleAlert, Filter, LoaderCircle, RefreshCw } from 'lucide-
 import { EXPECTED_LOGICAL_TOTAL, safePercent } from '../lib/data-insights/metrics'
 import { createClient } from '../lib/supabase/client'
 import { useLanguage, type UiLanguage } from './language-provider'
-import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, scopeHasNarrowing, type GeographyScope } from './geography-scope'
+import { EMPTY_GEOGRAPHY_SCOPE, GeographyScopeSelector, scopeHasNarrowing, scopeRpcParams, type GeographyScope } from './geography-scope'
 import { EmptyState, MetricCard, PageHeader, Panel } from './ui-shell'
 
 type View = 'overview' | 'parts' | 'gender' | 'age' | 'households' | 'indicators' | 'revisions'
@@ -132,7 +132,7 @@ export function DataInsightsDashboard() {
     setError('')
     try {
       const result = await createClient().rpc('get_voter_insights_v1' as never, {
-        p_part: scope.partNumber ?? (part ? Number(part) : null),
+        p_part: scope.partNumber ?? (part ? Number(part) : null), ...scopeRpcParams(scope),
         p_gender: gender || null,
         p_age_group: age || null,
       } as never) as unknown as { data: InsightsRow[] | null; error: { message: string } | null }

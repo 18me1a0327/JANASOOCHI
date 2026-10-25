@@ -2,6 +2,7 @@
 
 import { useLanguage } from "../../../components/language-provider";
 import { AdminConsole } from "../../../components/admin-console";
+import { PartImportPanel } from "../../../components/part-import-panel";
 import { PageHeader } from "../../../components/ui-shell";
 
 export default function AdministrationPage() {
@@ -14,6 +15,7 @@ export default function AdministrationPage() {
         description={t("pageAdminLead")}
       />
       <AdminConsole />
+      <PartImportPanel />
     </>
   );
 }
